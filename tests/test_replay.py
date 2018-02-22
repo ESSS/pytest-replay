@@ -100,4 +100,3 @@ def test_xdist(testdir):
                 test_ids.append(first)
     expected_ids = ['test_xdist.py::test[{}]'.format(x) for x in range(10)]
     assert sorted(test_ids) == sorted(expected_ids)
-
