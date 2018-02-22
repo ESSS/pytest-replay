@@ -20,7 +20,8 @@ setup(
     maintainer_email='bruno@esss.com.br',
     license='MIT',
     url='https://github.com/nicoddemus/pytest-replay',
-    description='Write shell scripts to re-execute previous runs to reproduce crashes or flaky tests',
+    description='Saves shell scripts that allow re-execute previous pytest '
+                'runs to reproduce crashes or flaky tests',
     long_description=read('README.rst'),
     py_modules=['pytest_replay'],
     install_requires=['pytest>=3.0.0'],

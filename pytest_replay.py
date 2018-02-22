@@ -26,7 +26,6 @@ def pytest_addoption(parser):
 class ReplayWriter(object):
     BASE_SCRIPT_NAME = '.pytest-replay'
 
-
     def __init__(self, config):
         self.dir = config.getoption('replay_script_dir')
         self.ext = config.getoption('replay_script_ext')
@@ -34,10 +33,8 @@ class ReplayWriter(object):
         self.cleanup_scripts()
         self.written_nodeids = set()
 
-
     def pytest_runtest_logreport(self, report):
         self.append_test_to_script(report)
-
 
     def cleanup_scripts(self):
         if os.path.isdir(self.dir):
@@ -46,7 +43,6 @@ class ReplayWriter(object):
                 os.remove(fn)
         else:
             os.makedirs(self.dir)
-
 
     def append_test_to_script(self, report):
         worker_suffix = '-' + str(report.node.gateway.id) if hasattr(report, 'node') else ''

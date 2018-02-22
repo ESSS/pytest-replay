@@ -20,7 +20,8 @@ def suite(testdir):
 @pytest.mark.parametrize('ext', ['bat', 'sh'])
 def test_normal_execution(suite, testdir, ext):
     dir = testdir.tmpdir / 'replay-scripts'
-    result = testdir.runpytest('--replay-script-dir={}'.format(dir), '--replay-script-ext={}'.format(ext))
+    result = testdir.runpytest('--replay-script-dir={}'.format(dir),
+                               '--replay-script-ext={}'.format(ext))
 
     result.stdout.fnmatch_lines('*replay dir: {} ({})'.format(dir, ext))
 
@@ -60,7 +61,8 @@ def test_crash(testdir, ext, do_crash):
             pass
     """.format(do_crash=do_crash))
     dir = testdir.tmpdir / 'replay-scripts'
-    result = testdir.runpytest_subprocess('--replay-script-dir={}'.format(dir), '--replay-script-ext={}'.format(ext))
+    result = testdir.runpytest_subprocess('--replay-script-dir={}'.format(dir),
+                                          '--replay-script-ext={}'.format(ext))
 
     result.stdout.fnmatch_lines('*replay dir: {} ({})'.format(dir, ext))
 
