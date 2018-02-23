@@ -1,3 +1,9 @@
+0.2.0
+=====
+
+* Replace the shell scripts by plain text files and add new
+  ``--replay`` flag which accepts the generated files to run the tests.
+
 0.1.1
 =====
 
