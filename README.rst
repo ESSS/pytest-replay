@@ -2,12 +2,12 @@
 pytest-replay
 =============
 
-.. image:: https://travis-ci.org/nicoddemus/pytest-replay.svg?branch=master
-    :target: https://travis-ci.org/nicoddemus/pytest-replay
+.. image:: https://travis-ci.org/ESSS/pytest-replay.svg?branch=master
+    :target: https://travis-ci.org/ESSS/pytest-replay
     :alt: See Build Status on Travis CI
 
-.. image:: https://ci.appveyor.com/api/projects/status/github/nicoddemus/pytest-replay?branch=master
-    :target: https://ci.appveyor.com/project/nicoddemus/pytest-replay/branch/master
+.. image:: https://ci.appveyor.com/api/projects/status/github/ESSS/pytest-replay?branch=master
+    :target: https://ci.appveyor.com/project/ESSS/pytest-replay/branch/master
     :alt: See Build Status on AppVeyor
 
 Saves previous test runs and allow re-execute previous pytest runs to reproduce crashes or flaky tests
@@ -120,7 +120,7 @@ If you encounter any problems, please `file an issue`_ along with a detailed des
 .. _`GNU GPL v3.0`: http://www.gnu.org/licenses/gpl-3.0.txt
 .. _`Apache Software License 2.0`: http://www.apache.org/licenses/LICENSE-2.0
 .. _`cookiecutter-pytest-plugin`: https://github.com/pytest-dev/cookiecutter-pytest-plugin
-.. _`file an issue`: https://github.com/nicoddemus/pytest-replay/issues
+.. _`file an issue`: https://github.com/ESSS/pytest-replay/issues
 .. _`pytest`: https://github.com/pytest-dev/pytest
 .. _`tox`: https://tox.readthedocs.io/en/latest/
 .. _`pip`: https://pypi.python.org/pypi/pip/
