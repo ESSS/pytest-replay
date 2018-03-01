@@ -86,3 +86,25 @@ def test_xdist(testdir):
         test_ids.extend(x.strip() for x in f.readlines())
     expected_ids = ['test_xdist.py::test[{}]'.format(x) for x in range(10)]
     assert sorted(test_ids) == sorted(expected_ids)
+
+
+def test_cwd_changed(testdir):
+    """Ensure that the plugin works even if some tests changes cwd."""
+    testdir.tmpdir.join('subdir').ensure(dir=1)
+    testdir.makepyfile("""
+        import os
+        def test_1():
+            os.chdir('subdir')
+        def test_2():
+            pass
+    """)
+    dir = testdir.tmpdir / 'replay'
+    result = testdir.runpytest_subprocess('--replay-record-dir={}'.format('replay'))
+    replay_file = dir / '.pytest-replay.txt'
+    contents = replay_file.readlines(True)
+    expected = [
+        'test_cwd_changed.py::test_1\n',
+        'test_cwd_changed.py::test_2\n',
+    ]
+    assert contents == expected
+    assert result.ret == 0

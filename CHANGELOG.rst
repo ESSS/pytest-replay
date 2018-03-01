@@ -1,3 +1,9 @@
+0.2.1
+=====
+
+* Fix crash ``IOError`` when tests changed the current working directory in the middle
+  of the testing session.
+
 0.2.0
 =====
 
