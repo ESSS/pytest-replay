@@ -27,6 +27,8 @@ class ReplayPlugin(object):
 
     def __init__(self, config):
         self.dir = config.getoption('replay_record_dir')
+        if self.dir:
+            self.dir = os.path.abspath(self.dir)
         self.ext = '.txt'
         self.cleanup_scripts()
         self.written_nodeids = set()
