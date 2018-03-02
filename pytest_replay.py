@@ -29,17 +29,23 @@ class ReplayPlugin(object):
         self.dir = config.getoption('replay_record_dir')
         if self.dir:
             self.dir = os.path.abspath(self.dir)
-        self.ext = '.txt'
-        self.cleanup_scripts()
-        self.written_nodeids = set()
         nprocs = config.getoption('numprocesses', 0)
         self.running_xdist = nprocs is not None and nprocs > 1
-        self.xdist_worker_name = os.environ.get('PYTEST_XDIST_WORKER')
+        self.xdist_worker_name = os.environ.get('PYTEST_XDIST_WORKER', '')
+        self.ext = '.txt'
+        self.written_nodeids = set()
+        self.cleanup_scripts()
 
     def cleanup_scripts(self):
+        if self.xdist_worker_name:
+            # only cleanup scripts on the master node
+            return
         if self.dir:
             if os.path.isdir(self.dir):
-                mask = os.path.join(self.dir, self.BASE_SCRIPT_NAME + '*' + self.ext)
+                if self.running_xdist:
+                    mask = os.path.join(self.dir, self.BASE_SCRIPT_NAME + '-*' + self.ext)
+                else:
+                    mask = os.path.join(self.dir, self.BASE_SCRIPT_NAME + self.ext)
                 for fn in glob(mask):
                     os.remove(fn)
             else:
@@ -73,12 +79,16 @@ class ReplayPlugin(object):
             items[:] = remaining
 
     def append_test_to_script(self, nodeid):
-        suffix = '-' + self.xdist_worker_name if self.xdist_worker_name else ''
+        suffix = self.suffix_sep + self.xdist_worker_name
         fn = os.path.join(self.dir, self.BASE_SCRIPT_NAME + suffix + self.ext)
         flag = 'a' if os.path.isfile(fn) else 'w'
         with io.open(fn, flag, encoding='UTF-8') as f:
             f.write(nodeid + u'\n')
             self.written_nodeids.add(nodeid)
+
+    @property
+    def suffix_sep(self):
+        return '-' if self.xdist_worker_name else ''
 
 
 def pytest_configure(config):
