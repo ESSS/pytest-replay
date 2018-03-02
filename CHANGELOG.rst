@@ -1,3 +1,8 @@
+0.2.2
+=====
+
+* Normal runs and ``xdist`` runs no longer clean up each other's files.
+
 0.2.1
 =====
 
