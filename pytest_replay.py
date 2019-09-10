@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-import io
 import os
 from glob import glob
 
@@ -22,7 +20,7 @@ def pytest_addoption(parser):
     )
 
 
-class ReplayPlugin(object):
+class ReplayPlugin:
     BASE_SCRIPT_NAME = ".pytest-replay"
 
     def __init__(self, config):
@@ -63,7 +61,7 @@ class ReplayPlugin(object):
         if not replay_file:
             return
 
-        with io.open(replay_file, "r", encoding="UTF-8") as f:
+        with open(replay_file, "r", encoding="UTF-8") as f:
             nodeids = {x.strip() for x in f.readlines()}
 
         remaining = []
@@ -82,8 +80,8 @@ class ReplayPlugin(object):
         suffix = "-" + self.xdist_worker_name if self.xdist_worker_name else ""
         fn = os.path.join(self.dir, self.BASE_SCRIPT_NAME + suffix + self.ext)
         flag = "a" if os.path.isfile(fn) else "w"
-        with io.open(fn, flag, encoding="UTF-8") as f:
-            f.write(nodeid + u"\n")
+        with open(fn, flag, encoding="UTF-8") as f:
+            f.write(nodeid + "\n")
             self.written_nodeids.add(nodeid)
 
     @property

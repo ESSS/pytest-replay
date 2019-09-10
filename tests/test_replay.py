@@ -24,9 +24,9 @@ def suite(testdir):
 def test_normal_execution(suite, testdir):
     """Ensure scripts are created and the tests are executed when using --replay."""
     dir = testdir.tmpdir / "replay"
-    result = testdir.runpytest("test_1.py", "--replay-record-dir={}".format(dir))
+    result = testdir.runpytest("test_1.py", f"--replay-record-dir={dir}")
 
-    result.stdout.fnmatch_lines("*replay dir: {}".format(dir))
+    result.stdout.fnmatch_lines(f"*replay dir: {dir}")
 
     replay_file = dir / ".pytest-replay.txt"
     contents = replay_file.readlines(True)
@@ -34,7 +34,7 @@ def test_normal_execution(suite, testdir):
     assert contents == expected
     assert result.ret == 0
 
-    result = testdir.runpytest("--replay={}".format(replay_file))
+    result = testdir.runpytest(f"--replay={replay_file}")
     assert result.ret == 0
     result.stdout.fnmatch_lines(["test_1.py*100%*", "*= 2 passed, 2 deselected in *="])
 
@@ -54,7 +54,7 @@ def test_crash(testdir, do_crash):
         )
     )
     dir = testdir.tmpdir / "replay"
-    result = testdir.runpytest_subprocess("--replay-record-dir={}".format(dir))
+    result = testdir.runpytest_subprocess(f"--replay-record-dir={dir}")
 
     contents = (dir / ".pytest-replay.txt").read()
     test_id = "test_crash.py::test_normal"
@@ -77,14 +77,14 @@ def test_xdist(testdir):
     )
     dir = testdir.tmpdir / "replay"
     procs = 2
-    testdir.runpytest_subprocess("-n", procs, "--replay-record-dir={}".format(dir))
+    testdir.runpytest_subprocess("-n", procs, f"--replay-record-dir={dir}")
 
     files = dir.listdir()
     assert len(files) == procs
     test_ids = []
     for f in files:
         test_ids.extend(x.strip() for x in f.readlines())
-    expected_ids = ["test_xdist.py::test[{}]".format(x) for x in range(10)]
+    expected_ids = [f"test_xdist.py::test[{x}]" for x in range(10)]
     assert sorted(test_ids) == sorted(expected_ids)
 
 
