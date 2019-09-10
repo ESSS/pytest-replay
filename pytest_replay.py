@@ -64,7 +64,7 @@ class ReplayPlugin(object):
             return
 
         with io.open(replay_file, "r", encoding="UTF-8") as f:
-            nodeids = set(x.strip() for x in f.readlines())
+            nodeids = {x.strip() for x in f.readlines()}
 
         remaining = []
         deselected = []
