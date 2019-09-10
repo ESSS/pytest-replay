@@ -14,7 +14,7 @@ setup(
     name="pytest-replay",
     version="0.0.0",
     author="Bruno Oliveira",
-    author_email="bruno@esss.com.br",
+    author_email="foss@esss.co",
     maintainer="Bruno Oliveira",
     maintainer_email="bruno@esss.com.br",
     license="MIT",
