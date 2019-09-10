@@ -77,7 +77,7 @@ def test_xdist(testdir):
     )
     dir = testdir.tmpdir / "replay"
     procs = 2
-    testdir.runpytest_subprocess("-n", procs, f"--replay-record-dir={dir}")
+    testdir.runpytest_subprocess("-n", str(procs), f"--replay-record-dir={dir}")
 
     files = dir.listdir()
     assert len(files) == procs
@@ -92,7 +92,7 @@ def test_xdist(testdir):
 def test_alternate_serial_parallel_does_not_erase_runs(suite, testdir, reverse):
     """xdist and normal runs should not erase each other's files."""
     command_lines = [
-        ("-n", 2, "--replay-record-dir=replay"),
+        ("-n", "2", "--replay-record-dir=replay"),
         ("--replay-record-dir=replay",),
     ]
     if reverse:
