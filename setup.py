@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 def read(fname):
@@ -22,7 +22,8 @@ setup(
     description="Saves previous test runs and allow re-execute previous pytest runs "
     "to reproduce crashes or flaky tests",
     long_description=read("README.rst"),
-    py_modules=["pytest_replay"],
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
     install_requires=["pytest>=3.0.0"],
     use_scm_version=True,
     setup_requires=["setuptools_scm"],
