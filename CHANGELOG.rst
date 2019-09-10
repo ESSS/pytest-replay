@@ -1,3 +1,8 @@
+1.0.0
+=====
+
+* Drop support for Python 2.
+
 0.2.2
 =====
 
