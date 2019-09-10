@@ -2,6 +2,7 @@
 pytest-replay
 =============
 
+
 .. image:: http://img.shields.io/pypi/v/pytest-replay.svg
     :target: https://pypi.python.org/pypi/pytest-replay
 
@@ -18,6 +19,10 @@ pytest-replay
 
 .. image:: https://img.shields.io/pypi/pyversions/pytest-replay.svg
     :target: https://pypi.python.org/pypi/pytest-replay
+
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+
 
 Saves previous test runs and allow re-execute previous pytest runs to reproduce crashes or flaky tests
 
