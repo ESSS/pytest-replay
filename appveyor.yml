@@ -4,15 +4,16 @@
 environment:
   matrix:
     - PYTHON: "C:\\Python36"
-      TOX_ENV: "py36"
+      TOXENV: "py36"
     - PYTHON: "C:\\Python37"
-      TOX_ENV: "py37"
+      TOXENV: "py37"
 
 install:
   - "%PYTHON%/Scripts/pip install tox"
-  - "%PYTHON%/Scripts/pip install wheel"
 
 build: false  # Not a C# project, build stuff at the test step instead.
 
 test_script:
-  - "%PYTHON%/Scripts/tox -e %TOX_ENV%"
+  - "%PYTHON%/Scripts/tox"
+
+skip_tags: true

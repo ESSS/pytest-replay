@@ -6,6 +6,11 @@ install:
 script:
   - tox -e $TOX_ENV
 
+stages:
+- test
+- name: deploy
+  if: repo = ESSS/pytest-replay AND tag IS present
+
 jobs:
   include:
     - python: 3.6
