@@ -24,13 +24,13 @@ class ReplayPlugin:
     BASE_SCRIPT_NAME = ".pytest-replay"
 
     def __init__(self, config):
-        self.dir = config.getoption('replay_record_dir')
+        self.dir = config.getoption("replay_record_dir")
         if self.dir:
             self.dir = os.path.abspath(self.dir)
-        nprocs = config.getoption('numprocesses', 0)
+        nprocs = config.getoption("numprocesses", 0)
         self.running_xdist = nprocs is not None and nprocs > 1
-        self.xdist_worker_name = os.environ.get('PYTEST_XDIST_WORKER', '')
-        self.ext = '.txt'
+        self.xdist_worker_name = os.environ.get("PYTEST_XDIST_WORKER", "")
+        self.ext = ".txt"
         self.written_nodeids = set()
         self.cleanup_scripts()
 
@@ -41,7 +41,9 @@ class ReplayPlugin:
         if self.dir:
             if os.path.isdir(self.dir):
                 if self.running_xdist:
-                    mask = os.path.join(self.dir, self.BASE_SCRIPT_NAME + '-*' + self.ext)
+                    mask = os.path.join(
+                        self.dir, self.BASE_SCRIPT_NAME + "-*" + self.ext
+                    )
                 else:
                     mask = os.path.join(self.dir, self.BASE_SCRIPT_NAME + self.ext)
                 for fn in glob(mask):
@@ -86,7 +88,7 @@ class ReplayPlugin:
 
     @property
     def suffix_sep(self):
-        return '-' if self.xdist_worker_name else ''
+        return "-" if self.xdist_worker_name else ""
 
 
 def pytest_configure(config):

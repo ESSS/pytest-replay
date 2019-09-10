@@ -88,42 +88,41 @@ def test_xdist(testdir):
     assert sorted(test_ids) == sorted(expected_ids)
 
 
-@pytest.mark.parametrize('reverse', [True, False])
+@pytest.mark.parametrize("reverse", [True, False])
 def test_alternate_serial_parallel_does_not_erase_runs(suite, testdir, reverse):
     """xdist and normal runs should not erase each other's files."""
     command_lines = [
-        ('-n', 2, '--replay-record-dir=replay'),
-        ('--replay-record-dir=replay',),
+        ("-n", 2, "--replay-record-dir=replay"),
+        ("--replay-record-dir=replay",),
     ]
     if reverse:
         command_lines.reverse()
     for command_line in command_lines:
         result = testdir.runpytest_subprocess(*command_line)
         assert result.ret == 0
-    assert set(x.basename for x in (testdir.tmpdir / 'replay').listdir()) == {
-        '.pytest-replay.txt',
-        '.pytest-replay-gw0.txt',
-        '.pytest-replay-gw1.txt',
+    assert set(x.basename for x in (testdir.tmpdir / "replay").listdir()) == {
+        ".pytest-replay.txt",
+        ".pytest-replay-gw0.txt",
+        ".pytest-replay-gw1.txt",
     }
 
 
 def test_cwd_changed(testdir):
     """Ensure that the plugin works even if some tests changes cwd."""
-    testdir.tmpdir.join('subdir').ensure(dir=1)
-    testdir.makepyfile("""
+    testdir.tmpdir.join("subdir").ensure(dir=1)
+    testdir.makepyfile(
+        """
         import os
         def test_1():
             os.chdir('subdir')
         def test_2():
             pass
-    """)
-    dir = testdir.tmpdir / 'replay'
-    result = testdir.runpytest_subprocess('--replay-record-dir={}'.format('replay'))
-    replay_file = dir / '.pytest-replay.txt'
+    """
+    )
+    dir = testdir.tmpdir / "replay"
+    result = testdir.runpytest_subprocess("--replay-record-dir={}".format("replay"))
+    replay_file = dir / ".pytest-replay.txt"
     contents = replay_file.readlines(True)
-    expected = [
-        'test_cwd_changed.py::test_1\n',
-        'test_cwd_changed.py::test_2\n',
-    ]
+    expected = ["test_cwd_changed.py::test_1\n", "test_cwd_changed.py::test_2\n"]
     assert contents == expected
     assert result.ret == 0
