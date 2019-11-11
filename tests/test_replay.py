@@ -21,14 +21,23 @@ def suite(testdir):
     )
 
 
-def test_normal_execution(suite, testdir):
+@pytest.mark.parametrize(
+    "extra_option", [(None, ".pytest-replay"), ("--replay-base-name", "NEW-BASE-NAME")]
+)
+def test_normal_execution(suite, testdir, extra_option):
     """Ensure scripts are created and the tests are executed when using --replay."""
+    extra_arg, base_name = extra_option
     dir = testdir.tmpdir / "replay"
-    result = testdir.runpytest("test_1.py", f"--replay-record-dir={dir}")
+    options = ["test_1.py", f"--replay-record-dir={dir}"]
+
+    if extra_arg:
+        options.append(f"{extra_arg}={base_name}")
+
+    result = testdir.runpytest(*options)
 
     result.stdout.fnmatch_lines(f"*replay dir: {dir}")
 
-    replay_file = dir / ".pytest-replay.txt"
+    replay_file = dir / f"{base_name}.txt"
     contents = replay_file.readlines(True)
     expected = ["test_1.py::test_foo\n", "test_1.py::test_bar\n"]
     assert contents == expected
