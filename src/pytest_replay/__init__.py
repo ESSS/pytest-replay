@@ -87,14 +87,9 @@ class ReplayPlugin:
     def append_test_to_script(self, nodeid):
         suffix = "-" + self.xdist_worker_name if self.xdist_worker_name else ""
         fn = os.path.join(self.dir, self.base_script_name + suffix + self.ext)
-        flag = "a" if os.path.isfile(fn) else "w"
-        with open(fn, flag, encoding="UTF-8") as f:
+        with open(fn, "a", encoding="UTF-8") as f:
             f.write(nodeid + "\n")
             self.written_nodeids.add(nodeid)
-
-    @property
-    def suffix_sep(self):
-        return "-" if self.xdist_worker_name else ""
 
 
 def pytest_configure(config):
