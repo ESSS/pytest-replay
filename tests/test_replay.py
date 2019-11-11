@@ -22,7 +22,7 @@ def suite(testdir):
 
 
 @pytest.mark.parametrize(
-    "extra_option", [(None, ".pytest-replay"), ("--base-name", "NEW-BASE-NAME")]
+    "extra_option", [(None, ".pytest-replay"), ("--replay-base-name", "NEW-BASE-NAME")]
 )
 def test_normal_execution(suite, testdir, extra_option):
     """Ensure scripts are created and the tests are executed when using --replay."""

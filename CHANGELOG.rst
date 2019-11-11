@@ -1,3 +1,8 @@
+1.1.0 (2019-11-11)
+==================
+
+* Introduce new ``--replay-base-name`` option that lets users configure a different name of the replay file. Defaults to ``.pytest-replay``.
+
 1.0.0
 =====
 

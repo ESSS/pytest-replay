@@ -19,7 +19,7 @@ def pytest_addoption(parser):
         help="Use a replay file to run the tests from that file only",
     )
     group.addoption(
-        "--base-name",
+        "--replay-base-name",
         action="store",
         dest="base_name",
         default=".pytest-replay",
