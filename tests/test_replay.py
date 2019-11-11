@@ -135,7 +135,3 @@ def test_cwd_changed(testdir):
     expected = ["test_cwd_changed.py::test_1\n", "test_cwd_changed.py::test_2\n"]
     assert contents == expected
     assert result.ret == 0
-
-
-def test_base_script_name():
-    pass
