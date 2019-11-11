@@ -28,7 +28,6 @@ def pytest_addoption(parser):
 
 
 class ReplayPlugin:
-
     def __init__(self, config):
         self.dir = config.getoption("replay_record_dir")
         self.base_script_name = config.getoption("base_name")
