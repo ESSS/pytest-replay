@@ -18,13 +18,20 @@ def pytest_addoption(parser):
         default=None,
         help="Use a replay file to run the tests from that file only",
     )
+    group.addoption(
+        "--base-name",
+        action="store",
+        dest="base_name",
+        default=".pytest-replay",
+        help="Base name for the output file.",
+    )
 
 
 class ReplayPlugin:
-    BASE_SCRIPT_NAME = ".pytest-replay"
 
     def __init__(self, config):
         self.dir = config.getoption("replay_record_dir")
+        self.base_script_name = config.getoption("base_name")
         if self.dir:
             self.dir = os.path.abspath(self.dir)
         nprocs = config.getoption("numprocesses", 0)
@@ -42,10 +49,10 @@ class ReplayPlugin:
             if os.path.isdir(self.dir):
                 if self.running_xdist:
                     mask = os.path.join(
-                        self.dir, self.BASE_SCRIPT_NAME + "-*" + self.ext
+                        self.dir, self.base_script_name + "-*" + self.ext
                     )
                 else:
-                    mask = os.path.join(self.dir, self.BASE_SCRIPT_NAME + self.ext)
+                    mask = os.path.join(self.dir, self.base_script_name + self.ext)
                 for fn in glob(mask):
                     os.remove(fn)
             else:
@@ -80,7 +87,7 @@ class ReplayPlugin:
 
     def append_test_to_script(self, nodeid):
         suffix = "-" + self.xdist_worker_name if self.xdist_worker_name else ""
-        fn = os.path.join(self.dir, self.BASE_SCRIPT_NAME + suffix + self.ext)
+        fn = os.path.join(self.dir, self.base_script_name + suffix + self.ext)
         flag = "a" if os.path.isfile(fn) else "w"
         with open(fn, flag, encoding="UTF-8") as f:
             f.write(nodeid + "\n")
