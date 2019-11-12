@@ -1,3 +1,6 @@
+import json
+import re
+from datetime import datetime
 import os
 from glob import glob
 
@@ -39,6 +42,14 @@ class ReplayPlugin:
         self.ext = ".txt"
         self.written_nodeids = set()
         self.cleanup_scripts()
+        self.test_start_time = dict()
+        self._start_time = None
+
+    @property
+    def start_time(self):
+        if self._start_time is None:
+            self._start_time = datetime.now()
+        return self._start_time
 
     def cleanup_scripts(self):
         if self.xdist_worker_name:
@@ -62,6 +73,29 @@ class ReplayPlugin:
             # only workers report running tests when running in xdist
             return
         if self.dir:
+            self.test_start_time[nodeid] = (
+                datetime.now() - self.start_time
+            ).total_seconds()
+            json_content = json.dumps(
+                {"nodeid": nodeid, "start": self.test_start_time[nodeid]}
+            )
+            self.append_test_to_script(json_content)
+
+    def pytest_runtest_logfinish(self, nodeid):
+        if self.running_xdist and not self.xdist_worker_name:
+            # only workers report running tests when running in xdist
+            return
+        if self.dir:
+            nodeid = json.dumps(
+                {
+                    "nodeid": nodeid,
+                    "start": self.test_start_time[nodeid],
+                    "finish": (
+                        self.test_start_time[nodeid] - self.start_time
+                    ).total_seconds(),
+                    "outcome": "passed",
+                }
+            )
             self.append_test_to_script(nodeid)
 
     def pytest_collection_modifyitems(self, items, config):
@@ -70,7 +104,7 @@ class ReplayPlugin:
             return
 
         with open(replay_file, "r", encoding="UTF-8") as f:
-            nodeids = {x.strip() for x in f.readlines()}
+            nodeids = {json.loads(x) for x in f.readlines()}
 
         remaining = []
         deselected = []
