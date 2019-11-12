@@ -1,3 +1,4 @@
+import json
 import pytest
 
 
@@ -39,8 +40,21 @@ def test_normal_execution(suite, testdir, extra_option):
 
     replay_file = dir / f"{base_name}.txt"
     contents = replay_file.readlines(True)
-    expected = ["test_1.py::test_foo\n", "test_1.py::test_bar\n"]
-    assert contents == expected
+    contents = [json.loads(line.strip()) for line in contents]
+    assert contents[0] == {"nodeid": "test_1.py::test_foo", "start": 0.0}
+    assert contents[1] == {
+        "nodeid": "test_1.py::test_foo",
+        "start": 0.0,
+        "finish": 1.0,
+        "outcome": "passed",
+    }
+    assert contents[2] == {"nodeid": "test_1.py::test_bar", "start": 2.0}
+    assert contents[3] == {
+        "nodeid": "test_1.py::test_bar",
+        "start": 2.0,
+        "finish": 3.0,
+        "outcome": "passed",
+    }
     assert result.ret == 0
 
     result = testdir.runpytest(f"--replay={replay_file}")
