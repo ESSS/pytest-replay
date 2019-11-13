@@ -58,15 +58,15 @@ That is useful to analyze concurrent tests which might have some kind of race co
 The new output generated is similar to::
 
     {"nodeid": "test_foo.py::test[1]", "start": 0.000}
-    {"nodeid": "test_foo.py::test[1]", "start": 0.000, "finish": 1.5, "outcome": "passed}
+    {"nodeid": "test_foo.py::test[1]", "start": 0.000, "finish": 1.5, "outcome": "passed"}
     {"nodeid": "test_foo.py::test[3]", "start": 1.5}
-    {"nodeid": "test_foo.py::test[3]", "start": 1.5, "finish": 2.5, "outcome": "passed}
+    {"nodeid": "test_foo.py::test[3]", "start": 1.5, "finish": 2.5, "outcome": "passed"}
     {"nodeid": "test_foo.py::test[5]", "start": 2.5}
-    {"nodeid": "test_foo.py::test[5]", "start": 2.5, "finish": 3.5, "outcome": "passed}
+    {"nodeid": "test_foo.py::test[5]", "start": 2.5, "finish": 3.5, "outcome": "passed"}
     {"nodeid": "test_foo.py::test[7]", "start": 3.5}
-    {"nodeid": "test_foo.py::test[7]", "start": 3.5, "finish": 4.5, "outcome": "passed}
+    {"nodeid": "test_foo.py::test[7]", "start": 3.5, "finish": 4.5, "outcome": "passed"}
     {"nodeid": "test_foo.py::test[8]", "start": 4.5}
-    {"nodeid": "test_foo.py::test[8]", "start": 4.5, "finish": 5.5, "outcome": "passed}
+    {"nodeid": "test_foo.py::test[8]", "start": 4.5, "finish": 5.5, "outcome": "passed"}
 
 
 If there is a crash or a flaky failure in the tests of the worker ``gw1``, one can take that file from the CI server and
