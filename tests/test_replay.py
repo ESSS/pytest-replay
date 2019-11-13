@@ -26,8 +26,10 @@ def suite(testdir):
         """,
     )
 
+
 class MockTime:
     fake_time = 0.0
+
     def __init__(self):
         self.fake_time = 0.0
 
@@ -35,6 +37,7 @@ class MockTime:
     def time(cls):
         cls.fake_time += 1.0
         return cls.fake_time
+
 
 @pytest.mark.parametrize(
     "extra_option", [(None, ".pytest-replay"), ("--replay-base-name", "NEW-BASE-NAME")]

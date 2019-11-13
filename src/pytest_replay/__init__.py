@@ -45,13 +45,7 @@ class ReplayPlugin:
         self.written_nodeids = set()
         self.cleanup_scripts()
         self.node_start_time = dict()
-        self._start_time = None
-
-    @property
-    def start_time(self):
-        if self._start_time is None:
-            self._start_time = time.time()
-        return self._start_time
+        self.start_time = config.getoption("replay_start_time")
 
     def cleanup_scripts(self):
         if self.xdist_worker_name:
@@ -135,3 +129,7 @@ def pytest_configure(config):
 def pytest_report_header(config):
     if config.getoption("replay_record_dir"):
         return "replay dir: {}".format(config.getoption("replay_record_dir"))
+
+
+def pytest_cmdline_main(config):
+    config.option.replay_start_time = time.time()
