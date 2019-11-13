@@ -78,6 +78,16 @@ def test_normal_execution(suite, testdir, extra_option, monkeypatch):
     result.stdout.fnmatch_lines(["test_1.py*100%*", "*= 2 passed, 2 deselected in *="])
 
 
+def test_flat_output_format(testdir, suite):
+    testdir.tmpdir.mkdir("replay")
+    file_output = testdir.tmpdir.join("replay", ".pytest-replay.txt")
+    tests_execute = ["test_1.py::test_foo", "test_1.py::test_bar"]
+    file_output.write("\n".join(tests_execute))
+    result = testdir.runpytest(f"--replay={file_output}")
+    assert result.ret == 0
+    result.stdout.fnmatch_lines(["test_1.py*100%*", "*= 2 passed, 2 deselected in *="])
+
+
 @pytest.mark.parametrize("do_crash", [True, False])
 def test_crash(testdir, do_crash):
     testdir.makepyfile(
