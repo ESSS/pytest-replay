@@ -1,8 +1,10 @@
 import json
-import re
-from datetime import datetime
+import time
 import os
 from glob import glob
+from json import JSONDecodeError
+
+import pytest
 
 
 def pytest_addoption(parser):
@@ -42,13 +44,13 @@ class ReplayPlugin:
         self.ext = ".txt"
         self.written_nodeids = set()
         self.cleanup_scripts()
-        self.test_start_time = dict()
+        self.node_start_time = dict()
         self._start_time = None
 
     @property
     def start_time(self):
         if self._start_time is None:
-            self._start_time = datetime.now()
+            self._start_time = time.time()
         return self._start_time
 
     def cleanup_scripts(self):
@@ -73,30 +75,26 @@ class ReplayPlugin:
             # only workers report running tests when running in xdist
             return
         if self.dir:
-            self.test_start_time[nodeid] = (
-                datetime.now() - self.start_time
-            ).total_seconds()
+            self.node_start_time[nodeid] = time.time() - self.start_time
             json_content = json.dumps(
-                {"nodeid": nodeid, "start": self.test_start_time[nodeid]}
+                {"nodeid": nodeid, "start": self.node_start_time[nodeid]}
             )
-            self.append_test_to_script(json_content)
+            self.append_test_to_script(nodeid, json_content)
 
-    def pytest_runtest_logfinish(self, nodeid):
-        if self.running_xdist and not self.xdist_worker_name:
-            # only workers report running tests when running in xdist
-            return
-        if self.dir:
-            nodeid = json.dumps(
+    @pytest.hookimpl(hookwrapper=True)
+    def pytest_runtest_makereport(self, item):
+        report = yield
+        result = report.get_result()
+        if self.dir and result.when == "teardown":
+            json_content = json.dumps(
                 {
-                    "nodeid": nodeid,
-                    "start": self.test_start_time[nodeid],
-                    "finish": (
-                        self.test_start_time[nodeid] - self.start_time
-                    ).total_seconds(),
-                    "outcome": "passed",
+                    "nodeid": item.nodeid,
+                    "start": self.node_start_time[item.nodeid],
+                    "finish": time.time() - self.start_time,
+                    "outcome": result.outcome,
                 }
             )
-            self.append_test_to_script(nodeid)
+            self.append_test_to_script(item.nodeid, json_content)
 
     def pytest_collection_modifyitems(self, items, config):
         replay_file = config.getoption("replay_file")
@@ -104,8 +102,7 @@ class ReplayPlugin:
             return
 
         with open(replay_file, "r", encoding="UTF-8") as f:
-            nodeids = {json.loads(x) for x in f.readlines()}
-
+            nodeids = {json.loads(x)["nodeid"] for x in f.readlines()}
         remaining = []
         deselected = []
         for item in items:
@@ -118,11 +115,11 @@ class ReplayPlugin:
             config.hook.pytest_deselected(items=deselected)
             items[:] = remaining
 
-    def append_test_to_script(self, nodeid):
+    def append_test_to_script(self, nodeid, line):
         suffix = "-" + self.xdist_worker_name if self.xdist_worker_name else ""
         fn = os.path.join(self.dir, self.base_script_name + suffix + self.ext)
         with open(fn, "a", encoding="UTF-8") as f:
-            f.write(nodeid + "\n")
+            f.write(line + "\n")
             self.written_nodeids.add(nodeid)
 
 
