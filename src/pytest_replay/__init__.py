@@ -102,7 +102,11 @@ class ReplayPlugin:
             return
 
         with open(replay_file, "r", encoding="UTF-8") as f:
-            nodeids = {json.loads(x)["nodeid"] for x in f.readlines()}
+            all_lines = f.readlines()
+            try:
+                nodeids = {json.loads(line)["nodeid"] for line in all_lines}
+            except JSONDecodeError:
+                nodeids = {line.strip() for line in all_lines}
         remaining = []
         deselected = []
         for item in items:
