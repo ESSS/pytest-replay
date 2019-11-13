@@ -1,10 +1,6 @@
 import json
-import time
-from typing import re
 
 import pytest
-
-import pytest_replay
 
 
 @pytest.fixture
