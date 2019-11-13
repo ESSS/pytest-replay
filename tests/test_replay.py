@@ -23,24 +23,20 @@ def suite(testdir):
     )
 
 
-class MockTime:
-    fake_time = 0.0
-
-    def __init__(self):
-        self.fake_time = 0.0
-
-    @classmethod
-    def time(cls):
-        cls.fake_time += 1.0
-        return cls.fake_time
-
-
 @pytest.mark.parametrize(
     "extra_option", [(None, ".pytest-replay"), ("--replay-base-name", "NEW-BASE-NAME")]
 )
 def test_normal_execution(suite, testdir, extra_option, monkeypatch):
     """Ensure scripts are created and the tests are executed when using --replay."""
-    MockTime()
+
+    class MockTime:
+        fake_time = 0.0
+
+        @classmethod
+        def time(cls):
+            cls.fake_time += 1.0
+            return cls.fake_time
+
     monkeypatch.setattr("pytest_replay.time", MockTime)
 
     extra_arg, base_name = extra_option
