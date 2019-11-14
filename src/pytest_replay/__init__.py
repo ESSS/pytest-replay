@@ -1,5 +1,9 @@
+import json
+import time
 import os
 from glob import glob
+
+import pytest
 
 
 def pytest_addoption(parser):
@@ -39,6 +43,8 @@ class ReplayPlugin:
         self.ext = ".txt"
         self.written_nodeids = set()
         self.cleanup_scripts()
+        self.node_start_time = dict()
+        self.session_start_time = config.replay_start_time
 
     def cleanup_scripts(self):
         if self.xdist_worker_name:
@@ -62,7 +68,26 @@ class ReplayPlugin:
             # only workers report running tests when running in xdist
             return
         if self.dir:
-            self.append_test_to_script(nodeid)
+            self.node_start_time[nodeid] = time.perf_counter() - self.session_start_time
+            json_content = json.dumps(
+                {"nodeid": nodeid, "start": self.node_start_time[nodeid]}
+            )
+            self.append_test_to_script(nodeid, json_content)
+
+    @pytest.hookimpl(hookwrapper=True)
+    def pytest_runtest_makereport(self, item):
+        report = yield
+        result = report.get_result()
+        if self.dir and result.when == "teardown":
+            json_content = json.dumps(
+                {
+                    "nodeid": item.nodeid,
+                    "start": self.node_start_time[item.nodeid],
+                    "finish": time.perf_counter() - self.session_start_time,
+                    "outcome": result.outcome,
+                }
+            )
+            self.append_test_to_script(item.nodeid, json_content)
 
     def pytest_collection_modifyitems(self, items, config):
         replay_file = config.getoption("replay_file")
@@ -70,8 +95,8 @@ class ReplayPlugin:
             return
 
         with open(replay_file, "r", encoding="UTF-8") as f:
-            nodeids = {x.strip() for x in f.readlines()}
-
+            all_lines = f.readlines()
+            nodeids = {json.loads(line)["nodeid"] for line in all_lines}
         remaining = []
         deselected = []
         for item in items:
@@ -84,16 +109,28 @@ class ReplayPlugin:
             config.hook.pytest_deselected(items=deselected)
             items[:] = remaining
 
-    def append_test_to_script(self, nodeid):
+    def append_test_to_script(self, nodeid, line):
         suffix = "-" + self.xdist_worker_name if self.xdist_worker_name else ""
         fn = os.path.join(self.dir, self.base_script_name + suffix + self.ext)
         with open(fn, "a", encoding="UTF-8") as f:
-            f.write(nodeid + "\n")
+            f.write(line + "\n")
+            f.flush()
             self.written_nodeids.add(nodeid)
+
+
+class DeferPlugin:
+    def pytest_configure_node(self, node):
+        node.workerinput["replay_start_time"] = node.config.replay_start_time
 
 
 def pytest_configure(config):
     if config.getoption("replay_record_dir") or config.getoption("replay_file"):
+        if hasattr(config, "workerinput"):
+            config.replay_start_time = config.workerinput["replay_start_time"]
+        else:
+            config.replay_start_time = time.perf_counter()
+        if config.pluginmanager.hasplugin("xdist"):
+            config.pluginmanager.register(DeferPlugin())
         config.pluginmanager.register(ReplayPlugin(config), "replay-writer")
 
 

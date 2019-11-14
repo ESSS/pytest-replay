@@ -43,14 +43,29 @@ and a ``--replay=<file>`` can be used to re-run the tests from a previous run. F
 
     $ pytest -n auto --replay-record-dir=build/tests/replay
 
-This will generate files with the node id of each test executed by each worker, for example worker ``gw1`` will generate
-a file ``.pytest-replay-gw1.txt`` with contents like this::
+This will generate files with each line being a ``json`` with the following content:
+node identification, start time, end time and outcome. It is interesting to note
+that usually the node id is repeated twice, that is necessary in case of a test
+suddenly crashes we will still have the record of that test started. After the
+test finishes, ``pytest-replay`` will add another ``json`` line with the
+complete information.
+That is also useful to analyze concurrent tests which might have some kind of
+race condition and interfere in each other.
 
-    test_foo.py::test[1]
-    test_foo.py::test[3]
-    test_foo.py::test[5]
-    test_foo.py::test[7]
-    test_foo.py::test[8]
+For example worker ``gw1`` will generate a file
+``.pytest-replay-gw1.txt`` with contents like this::
+
+    {"nodeid": "test_foo.py::test[1]", "start": 0.000}
+    {"nodeid": "test_foo.py::test[1]", "start": 0.000, "finish": 1.5, "outcome": "passed"}
+    {"nodeid": "test_foo.py::test[3]", "start": 1.5}
+    {"nodeid": "test_foo.py::test[3]", "start": 1.5, "finish": 2.5, "outcome": "passed"}
+    {"nodeid": "test_foo.py::test[5]", "start": 2.5}
+    {"nodeid": "test_foo.py::test[5]", "start": 2.5, "finish": 3.5, "outcome": "passed"}
+    {"nodeid": "test_foo.py::test[7]", "start": 3.5}
+    {"nodeid": "test_foo.py::test[7]", "start": 3.5, "finish": 4.5, "outcome": "passed"}
+    {"nodeid": "test_foo.py::test[8]", "start": 4.5}
+    {"nodeid": "test_foo.py::test[8]", "start": 4.5, "finish": 5.5, "outcome": "passed"}
+
 
 If there is a crash or a flaky failure in the tests of the worker ``gw1``, one can take that file from the CI server and
 execute the tests in the same order with::

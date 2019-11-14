@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 
@@ -24,8 +26,19 @@ def suite(testdir):
 @pytest.mark.parametrize(
     "extra_option", [(None, ".pytest-replay"), ("--replay-base-name", "NEW-BASE-NAME")]
 )
-def test_normal_execution(suite, testdir, extra_option):
+def test_normal_execution(suite, testdir, extra_option, monkeypatch):
     """Ensure scripts are created and the tests are executed when using --replay."""
+
+    class MockTime:
+        fake_time = 0.0
+
+        @classmethod
+        def perf_counter(cls):
+            cls.fake_time += 1.0
+            return cls.fake_time
+
+    monkeypatch.setattr("pytest_replay.time", MockTime)
+
     extra_arg, base_name = extra_option
     dir = testdir.tmpdir / "replay"
     options = ["test_1.py", f"--replay-record-dir={dir}"]
@@ -39,10 +52,23 @@ def test_normal_execution(suite, testdir, extra_option):
 
     replay_file = dir / f"{base_name}.txt"
     contents = replay_file.readlines(True)
-    expected = ["test_1.py::test_foo\n", "test_1.py::test_bar\n"]
-    assert contents == expected
+    contents = [json.loads(line.strip()) for line in contents]
+    assert len(contents) == 4
+    assert contents[0] == {"nodeid": "test_1.py::test_foo", "start": 1.0}
+    assert contents[1] == {
+        "nodeid": "test_1.py::test_foo",
+        "start": 1.0,
+        "finish": 2.0,
+        "outcome": "passed",
+    }
+    assert contents[2] == {"nodeid": "test_1.py::test_bar", "start": 3.0}
+    assert contents[3] == {
+        "nodeid": "test_1.py::test_bar",
+        "start": 3.0,
+        "finish": 4.0,
+        "outcome": "passed",
+    }
     assert result.ret == 0
-
     result = testdir.runpytest(f"--replay={replay_file}")
     assert result.ret == 0
     result.stdout.fnmatch_lines(["test_1.py*100%*", "*= 2 passed, 2 deselected in *="])
@@ -90,11 +116,11 @@ def test_xdist(testdir):
 
     files = dir.listdir()
     assert len(files) == procs
-    test_ids = []
+    test_ids = set()
     for f in files:
-        test_ids.extend(x.strip() for x in f.readlines())
-    expected_ids = [f"test_xdist.py::test[{x}]" for x in range(10)]
-    assert sorted(test_ids) == sorted(expected_ids)
+        test_ids.update({json.loads(x.strip())["nodeid"] for x in f.readlines()})
+    expected_ids = {f"test_xdist.py::test[{x}]" for x in range(10)}
+    assert test_ids == expected_ids
 
 
 @pytest.mark.parametrize("reverse", [True, False])
@@ -131,7 +157,7 @@ def test_cwd_changed(testdir):
     dir = testdir.tmpdir / "replay"
     result = testdir.runpytest_subprocess("--replay-record-dir={}".format("replay"))
     replay_file = dir / ".pytest-replay.txt"
-    contents = replay_file.readlines(True)
-    expected = ["test_cwd_changed.py::test_1\n", "test_cwd_changed.py::test_2\n"]
+    contents = {json.loads(line)["nodeid"] for line in replay_file.readlines()}
+    expected = {"test_cwd_changed.py::test_1", "test_cwd_changed.py::test_2"}
     assert contents == expected
     assert result.ret == 0
