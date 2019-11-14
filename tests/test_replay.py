@@ -33,7 +33,7 @@ def test_normal_execution(suite, testdir, extra_option, monkeypatch):
         fake_time = 0.0
 
         @classmethod
-        def time(cls):
+        def perf_counter(cls):
             cls.fake_time += 1.0
             return cls.fake_time
 

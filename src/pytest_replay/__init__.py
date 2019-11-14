@@ -68,7 +68,7 @@ class ReplayPlugin:
             # only workers report running tests when running in xdist
             return
         if self.dir:
-            self.node_start_time[nodeid] = time.time() - self.start_time
+            self.node_start_time[nodeid] = time.perf_counter() - self.start_time
             json_content = json.dumps(
                 {"nodeid": nodeid, "start": self.node_start_time[nodeid]}
             )
@@ -83,7 +83,7 @@ class ReplayPlugin:
                 {
                     "nodeid": item.nodeid,
                     "start": self.node_start_time[item.nodeid],
-                    "finish": time.time() - self.start_time,
+                    "finish": time.perf_counter() - self.start_time,
                     "outcome": result.outcome,
                 }
             )
@@ -127,7 +127,7 @@ def pytest_configure(config):
     if hasattr(config, "workerinput"):
         config.replay_start_time = config.workerinput["replay_start_time"]
     else:
-        config.replay_start_time = time.time()
+        config.replay_start_time = time.perf_counter()
     if config.pluginmanager.hasplugin("xdist"):
         config.pluginmanager.register(DeferPlugin())
     if config.getoption("replay_record_dir") or config.getoption("replay_file"):
