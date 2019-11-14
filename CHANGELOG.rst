@@ -1,3 +1,10 @@
+1.2.0 (2019-11-14)
+==================
+
+* Change the format of the output to be able to add more information. The new output has new information such as
+  start time, end time, outcome and the node identification, all these data is represented by each line being a ``json``
+  format.
+
 1.1.0 (2019-11-11)
 ==================
 
