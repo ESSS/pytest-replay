@@ -124,13 +124,13 @@ class DeferPlugin:
 
 
 def pytest_configure(config):
-    if hasattr(config, "workerinput"):
-        config.replay_start_time = config.workerinput["replay_start_time"]
-    else:
-        config.replay_start_time = time.perf_counter()
-    if config.pluginmanager.hasplugin("xdist"):
-        config.pluginmanager.register(DeferPlugin())
     if config.getoption("replay_record_dir") or config.getoption("replay_file"):
+        if hasattr(config, "workerinput"):
+            config.replay_start_time = config.workerinput["replay_start_time"]
+        else:
+            config.replay_start_time = time.perf_counter()
+        if config.pluginmanager.hasplugin("xdist"):
+            config.pluginmanager.register(DeferPlugin())
         config.pluginmanager.register(ReplayPlugin(config), "replay-writer")
 
 
