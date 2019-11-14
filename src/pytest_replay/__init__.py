@@ -45,7 +45,7 @@ class ReplayPlugin:
         self.written_nodeids = set()
         self.cleanup_scripts()
         self.node_start_time = dict()
-        self.start_time = config.getoption("replay_start_time")
+        self.start_time = config.replay_start_time
 
     def cleanup_scripts(self):
         if self.xdist_worker_name:
@@ -118,10 +118,22 @@ class ReplayPlugin:
         fn = os.path.join(self.dir, self.base_script_name + suffix + self.ext)
         with open(fn, "a", encoding="UTF-8") as f:
             f.write(line + "\n")
+            f.flush()
             self.written_nodeids.add(nodeid)
 
 
+class DeferPlugin:
+    def pytest_configure_node(self, node):
+        node.workerinput["replay_start_time"] = node.config.replay_start_time
+
+
 def pytest_configure(config):
+    if hasattr(config, "workerinput"):
+        config.replay_start_time = config.workerinput["replay_start_time"]
+    else:
+        config.replay_start_time = time.time()
+    if config.pluginmanager.hasplugin("xdist"):
+        config.pluginmanager.register(DeferPlugin())
     if config.getoption("replay_record_dir") or config.getoption("replay_file"):
         config.pluginmanager.register(ReplayPlugin(config), "replay-writer")
 
@@ -129,7 +141,3 @@ def pytest_configure(config):
 def pytest_report_header(config):
     if config.getoption("replay_record_dir"):
         return "replay dir: {}".format(config.getoption("replay_record_dir"))
-
-
-def pytest_cmdline_main(config):
-    config.option.replay_start_time = time.time()
