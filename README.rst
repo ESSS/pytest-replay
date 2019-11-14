@@ -68,7 +68,7 @@ For example worker ``gw1`` will generate a file
 
 
 If there is a crash or a flaky failure in the tests of the worker ``gw1``, one can take that file from the CI server and
-execute the tests in the same order with (the old output is still supported)::
+execute the tests in the same order with::
 
     $ pytest --replay=.pytest-replay-gw1.txt
 
