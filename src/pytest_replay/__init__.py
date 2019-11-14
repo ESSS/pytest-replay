@@ -2,7 +2,6 @@ import json
 import time
 import os
 from glob import glob
-from json import JSONDecodeError
 
 import pytest
 
@@ -97,10 +96,7 @@ class ReplayPlugin:
 
         with open(replay_file, "r", encoding="UTF-8") as f:
             all_lines = f.readlines()
-            try:
-                nodeids = {json.loads(line)["nodeid"] for line in all_lines}
-            except JSONDecodeError:
-                nodeids = {line.strip() for line in all_lines}
+            nodeids = {json.loads(line)["nodeid"] for line in all_lines}
         remaining = []
         deselected = []
         for item in items:
