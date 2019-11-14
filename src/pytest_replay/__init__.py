@@ -44,7 +44,7 @@ class ReplayPlugin:
         self.written_nodeids = set()
         self.cleanup_scripts()
         self.node_start_time = dict()
-        self.start_time = config.replay_start_time
+        self.session_start_time = config.replay_start_time
 
     def cleanup_scripts(self):
         if self.xdist_worker_name:
@@ -68,7 +68,7 @@ class ReplayPlugin:
             # only workers report running tests when running in xdist
             return
         if self.dir:
-            self.node_start_time[nodeid] = time.perf_counter() - self.start_time
+            self.node_start_time[nodeid] = time.perf_counter() - self.session_start_time
             json_content = json.dumps(
                 {"nodeid": nodeid, "start": self.node_start_time[nodeid]}
             )
@@ -83,7 +83,7 @@ class ReplayPlugin:
                 {
                     "nodeid": item.nodeid,
                     "start": self.node_start_time[item.nodeid],
-                    "finish": time.perf_counter() - self.start_time,
+                    "finish": time.perf_counter() - self.session_start_time,
                     "outcome": result.outcome,
                 }
             )

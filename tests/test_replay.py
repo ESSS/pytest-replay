@@ -53,6 +53,7 @@ def test_normal_execution(suite, testdir, extra_option, monkeypatch):
     replay_file = dir / f"{base_name}.txt"
     contents = replay_file.readlines(True)
     contents = [json.loads(line.strip()) for line in contents]
+    assert len(contents) == 4
     assert contents[0] == {"nodeid": "test_1.py::test_foo", "start": 1.0}
     assert contents[1] == {
         "nodeid": "test_1.py::test_foo",
