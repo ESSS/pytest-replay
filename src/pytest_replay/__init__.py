@@ -129,7 +129,12 @@ def pytest_configure(config):
             config.replay_start_time = config.workerinput["replay_start_time"]
         else:
             config.replay_start_time = time.perf_counter()
-        if config.pluginmanager.hasplugin("xdist"):
+        # check for xdist and xdist.plugin: the former is the name of the plugin in normal
+        # circumstances, the latter happens when xdist is loaded explicitly using '-p' in
+        # a frozen executable
+        if config.pluginmanager.has_plugin("xdist") or config.pluginmanager.has_plugin(
+            "xdist.plugin"
+        ):
             config.pluginmanager.register(DeferPlugin())
         config.pluginmanager.register(ReplayPlugin(config), "replay-writer")
 

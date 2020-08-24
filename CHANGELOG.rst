@@ -1,3 +1,8 @@
+1.2.1 (2020-08-24)
+==================
+
+* Add proper support when running with ``xdist`` in a frozen executable.
+
 1.2.0 (2019-11-14)
 ==================
 
