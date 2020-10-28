@@ -96,7 +96,11 @@ class ReplayPlugin:
 
         with open(replay_file, "r", encoding="UTF-8") as f:
             all_lines = f.readlines()
-            nodeids = {json.loads(line)["nodeid"] for line in all_lines}
+            nodeids = {
+                json.loads(line)["nodeid"]
+                for line in all_lines
+                if not line.strip().startswith(('#', '//'))
+            }
         remaining = []
         deselected = []
         for item in items:
