@@ -73,3 +73,6 @@ target/
 
 # pycharm
 .idea
+
+# example virtual env used in "Contributing"
+.env
