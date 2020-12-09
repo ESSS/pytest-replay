@@ -99,7 +99,7 @@ class ReplayPlugin:
             nodeids = {
                 json.loads(line)["nodeid"]
                 for line in all_lines
-                if not line.strip().startswith(('#', '//'))
+                if not line.strip().startswith(("#", "//"))
             }
         remaining = []
         deselected = []
