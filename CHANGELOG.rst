@@ -1,3 +1,9 @@
+1.3.0 (2020-12-09)
+==================
+
+* Replay files can now contain comments (``#`` or ``//``), to make it easy to comment out tests from them when trying to narrow the tests to find a culprit.
+
+
 1.2.1 (2020-08-24)
 ==================
 
