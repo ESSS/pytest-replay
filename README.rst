@@ -23,7 +23,7 @@ Saves previous test runs and allow re-execute previous pytest runs to reproduce 
 
 ----
 
-This `Pytest`_ plugin was generated with `Cookiecutter`_ along with `@hackebrot`_'s `Cookiecutter-pytest-plugin`_ template.
+This `pytest`_ plugin was generated with `Cookiecutter`_ along with `@hackebrot`_'s `Cookiecutter-pytest-plugin`_ template.
 
 
 Features
