@@ -74,6 +74,34 @@ def test_normal_execution(suite, testdir, extra_option, monkeypatch):
     result.stdout.fnmatch_lines(["test_1.py*100%*", "*= 2 passed, 2 deselected in *="])
 
 
+@pytest.mark.parametrize(
+    "comment_format", ["#", "//"]
+)
+@pytest.mark.parametrize(
+    "name_to_comment, deselected", [("foo", 2), ("zz", 1)]
+)
+def test_line_comments(suite, testdir, comment_format, name_to_comment, deselected):
+    """Check line comments"""
+
+    replay_dir = testdir.tmpdir / "replay"
+    result = testdir.runpytest(f"--replay-record-dir={replay_dir}")
+    replay_file = replay_dir / ".pytest-replay.txt"
+    
+    contents = replay_file.readlines(True)
+    contents = [line.strip() for line in contents]
+    contents = [
+        (comment_format + line) if name_to_comment in line else line
+        for line in contents
+    ]
+    replay_file_commented = replay_dir / ".pytest-replay_commneted.txt"
+    replay_file_commented.write_text('\n'.join(contents), encoding='utf-8')
+    
+    result = testdir.runpytest(f"--replay={replay_file_commented}")
+    assert result.ret == 0
+    passed = 4 - deselected
+    result.stdout.fnmatch_lines([f"*= {passed} passed, {deselected} deselected in *="])
+
+
 @pytest.mark.parametrize("do_crash", [True, False])
 def test_crash(testdir, do_crash):
     testdir.makepyfile(
