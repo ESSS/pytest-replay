@@ -9,13 +9,8 @@ pytest-replay
 .. image:: https://anaconda.org/conda-forge/pytest-replay/badges/version.svg
     :target: https://anaconda.org/conda-forge/pytest-replay
 
-.. image:: https://travis-ci.org/ESSS/pytest-replay.svg?branch=master
-    :target: https://travis-ci.org/ESSS/pytest-replay
-    :alt: See Build Status on Travis CI
-
-.. image:: https://ci.appveyor.com/api/projects/status/github/ESSS/pytest-replay?branch=master
-    :target: https://ci.appveyor.com/project/ESSS/pytest-replay/branch/master
-    :alt: See Build Status on AppVeyor
+.. image:: https://github.com/ESSS/pytest-replay/workflows/build/badge.svg
+    :target: https://github.com/ESSS/pytest-replay/actions?query=workflow%3Abuild
 
 .. image:: https://img.shields.io/pypi/pyversions/pytest-replay.svg
     :target: https://pypi.python.org/pypi/pytest-replay
@@ -126,7 +121,7 @@ Follow these steps to make a new release:
 3. Open a PR;
 4. After it is **green** and **approved**, push a new tag in the format ``X.Y.Z``;
 
-Travis will deploy to PyPI automatically.
+GitHub Actions will deploy to PyPI automatically.
 
 Afterwards, update the recipe in `conda-forge/pytest-replay-feedstock <https://github.com/conda-forge/pytest-replay-feedstock>`_.
 
