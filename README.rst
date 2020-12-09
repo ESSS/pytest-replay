@@ -121,7 +121,7 @@ Follow these steps to make a new release:
 3. Open a PR;
 4. After it is **green** and **approved**, push a new tag in the format ``X.Y.Z``;
 
-Travis will deploy to PyPI automatically.
+GitHub Actions will deploy to PyPI automatically.
 
 Afterwards, update the recipe in `conda-forge/pytest-replay-feedstock <https://github.com/conda-forge/pytest-replay-feedstock>`_.
 
