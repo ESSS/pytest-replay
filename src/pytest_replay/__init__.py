@@ -29,6 +29,14 @@ def pytest_addoption(parser):
         default=".pytest-replay",
         help="Base name for the output file.",
     )
+    group.addoption(
+        "--replay-skip-cleanup",
+        action="store_true",
+        dest="skip_cleanup",
+        default=False,
+        help="Skips cleanup scripts before running (does not remove previously "
+        "generated replay files).",
+    )
 
 
 class ReplayPlugin:
@@ -42,7 +50,9 @@ class ReplayPlugin:
         self.xdist_worker_name = os.environ.get("PYTEST_XDIST_WORKER", "")
         self.ext = ".txt"
         self.written_nodeids = set()
-        self.cleanup_scripts()
+        skip_cleanup = config.getoption("skip_cleanup", False)
+        if not skip_cleanup:
+            self.cleanup_scripts()
         self.node_start_time = dict()
         self.session_start_time = config.replay_start_time
 

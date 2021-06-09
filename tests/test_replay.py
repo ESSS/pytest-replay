@@ -166,6 +166,38 @@ def test_alternate_serial_parallel_does_not_erase_runs(suite, testdir, reverse):
     }
 
 
+def test_skip_cleanup_does_not_erase_replay_files(suite, testdir):
+    """--replay-skip-cleanup will not erase replay files, appending data on next run."""
+    command_lines = [
+        ("-n", "2", "--replay-record-dir=replay"),
+        ("-n", "2", "--replay-record-dir=replay", "--replay-skip-cleanup"),
+    ]
+
+    expected_node_ids = [
+        "test_1.py::test_foo",
+        "test_1.py::test_foo",
+        "test_2.py::test_zz",
+        "test_2.py::test_zz",
+    ]
+
+    dir = testdir.tmpdir / "replay"
+    expected = expected_node_ids[:]
+    for command_line in command_lines:
+        result = testdir.runpytest_subprocess(*command_line)
+        assert result.ret == 0
+        assert set(x.basename for x in dir.listdir()) == {
+            ".pytest-replay-gw0.txt",
+            ".pytest-replay-gw1.txt",
+        }
+
+        replay_file = dir / ".pytest-replay-gw0.txt"
+        contents = [json.loads(line)["nodeid"] for line in replay_file.readlines()]
+        assert contents == expected
+        expected.extend(
+            expected_node_ids
+        )  # Next run will expect same tests appended again.
+
+
 def test_cwd_changed(testdir):
     """Ensure that the plugin works even if some tests changes cwd."""
     testdir.tmpdir.join("subdir").ensure(dir=1)
