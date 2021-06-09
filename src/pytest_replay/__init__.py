@@ -34,7 +34,8 @@ def pytest_addoption(parser):
         action="store_true",
         dest="skip_cleanup",
         default=False,
-        help="Skips cleanup scripts before running (does not remove previously generated replay files).",
+        help="Skips cleanup scripts before running (does not remove previously "
+        "generated replay files).",
     )
 
 

@@ -180,7 +180,7 @@ def test_skip_cleanup_does_not_erase_replay_files(suite, testdir):
         "test_2.py::test_zz",
     ]
 
-    dir = testdir.tmpdir / 'replay'
+    dir = testdir.tmpdir / "replay"
     expected = expected_node_ids[:]
     for command_line in command_lines:
         result = testdir.runpytest_subprocess(*command_line)
@@ -193,7 +193,9 @@ def test_skip_cleanup_does_not_erase_replay_files(suite, testdir):
         replay_file = dir / ".pytest-replay-gw0.txt"
         contents = [json.loads(line)["nodeid"] for line in replay_file.readlines()]
         assert contents == expected
-        expected.extend(expected_node_ids)  # Next run will expect same tests appended again.
+        expected.extend(
+            expected_node_ids
+        )  # Next run will expect same tests appended again.
 
 
 def test_cwd_changed(testdir):
