@@ -1,3 +1,8 @@
+1.4.0 (2021-06-09)
+==================
+
+* Introduce new ``--replay-skip-cleanup`` option that skips the cleanup before running the command. This allows to keep previously generated replay files when running new commands.
+
 1.3.0 (2020-12-09)
 ==================
 
