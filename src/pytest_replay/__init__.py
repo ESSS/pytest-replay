@@ -1,6 +1,6 @@
 import json
-import time
 import os
+import time
 from glob import glob
 
 import pytest
