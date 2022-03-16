@@ -21,6 +21,9 @@ jobs:
             tox_env: "py38"
           - python: "3.9"
             tox_env: "py39"
+        exclude:
+          - python: "3.6"
+            os: "windows-latest"
 
     steps:
     - uses: actions/checkout@v1
