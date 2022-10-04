@@ -27,7 +27,10 @@ setup(
     package_dir={"": "src"},
     install_requires=["pytest>=3.0.0"],
     use_scm_version=True,
-    setup_requires=["setuptools_scm"],
+    setup_requires=[
+        "setuptools_scm; python_version>'3.6'",
+        "setuptools_scm <7.0; python_version=='3.6'",
+    ],
     python_requires=">=3.6",
     classifiers=[
         "Development Status :: 4 - Beta",
