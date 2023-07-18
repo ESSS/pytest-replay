@@ -42,7 +42,7 @@ jobs:
     - name: Test
       run: |
         tox -e ${{ matrix.tox_env }}
-  
+
   deploy:
 
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
