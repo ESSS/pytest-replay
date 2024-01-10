@@ -1,3 +1,4 @@
+import itertools as it
 import json
 
 import pytest
@@ -216,3 +217,54 @@ def test_cwd_changed(testdir):
     expected = {"test_cwd_changed.py::test_1", "test_cwd_changed.py::test_2"}
     assert contents == expected
     assert result.ret == 0
+
+
+@pytest.mark.usefixtures("suite")
+def test_execution_different_order(testdir):
+    dir = testdir.tmpdir / "replay"
+    options = [f"--replay-record-dir={dir}"]
+    result = testdir.runpytest(*options)
+
+    replay_file = dir / ".pytest-replay.txt"
+
+    with replay_file.open("r+") as f:
+        content = f.readlines()
+
+        # pairwise shuffle of replay file
+        pairs = [(content[i], content[i + 1]) for i in range(0, len(content), 2)]
+        pairs = [pairs[2], pairs[0], pairs[3], pairs[1]]
+        content = list(it.chain.from_iterable(pairs))
+
+        f.seek(0)
+        f.writelines(content)
+
+    result = testdir.runpytest(f"--replay={replay_file}", "-v")
+    assert result.ret == 0
+    result.stdout.fnmatch_lines(
+        [
+            "test_2.py::test_zz*25%*",
+            "test_1.py::test_foo*50%*",
+            "test_3.py::test_foobar*75%*",
+            "test_1.py::test_bar*100%*",
+        ],
+        consecutive=True,
+    )
+
+
+@pytest.mark.usefixtures("suite")
+def test_filter_out_tests_not_in_file(testdir):
+    dir = testdir.tmpdir / "replay"
+    options = [f"--replay-record-dir={dir}", "-k", "foo"]
+    result = testdir.runpytest(*options)
+
+    replay_file = dir / ".pytest-replay.txt"
+
+    result = testdir.runpytest(f"--replay={replay_file}", "-v")
+    assert result.ret == 0
+    result.stdout.fnmatch_lines(
+        [
+            "test_1.py::test_foo*50%*",
+            "test_3.py::test_foobar*100%*",
+        ],
+        consecutive=True,
+    )

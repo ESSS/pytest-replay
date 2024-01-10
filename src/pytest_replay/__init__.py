@@ -106,22 +106,23 @@ class ReplayPlugin:
 
         with open(replay_file, "r", encoding="UTF-8") as f:
             all_lines = f.readlines()
-            nodeids = {
+            nodeids = dict.fromkeys(
                 json.loads(line)["nodeid"]
                 for line in all_lines
                 if not line.strip().startswith(("#", "//"))
-            }
+            )
+
+        items_dict = {item.nodeid: item for item in items}
         remaining = []
-        deselected = []
-        for item in items:
-            if item.nodeid in nodeids:
+        for nodeid in nodeids:
+            if item := items_dict.pop(nodeid):
                 remaining.append(item)
-            else:
-                deselected.append(item)
+        deselected = list(items_dict.values())
 
         if deselected:
             config.hook.pytest_deselected(items=deselected)
-            items[:] = remaining
+
+        items[:] = remaining
 
     def append_test_to_script(self, nodeid, line):
         suffix = "-" + self.xdist_worker_name if self.xdist_worker_name else ""
