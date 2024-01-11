@@ -160,7 +160,7 @@ def test_alternate_serial_parallel_does_not_erase_runs(suite, testdir, reverse):
     for command_line in command_lines:
         result = testdir.runpytest_subprocess(*command_line)
         assert result.ret == 0
-    assert set(x.basename for x in (testdir.tmpdir / "replay").listdir()) == {
+    assert {x.basename for x in (testdir.tmpdir / "replay").listdir()} == {
         ".pytest-replay.txt",
         ".pytest-replay-gw0.txt",
         ".pytest-replay-gw1.txt",
@@ -186,7 +186,7 @@ def test_skip_cleanup_does_not_erase_replay_files(suite, testdir):
     for command_line in command_lines:
         result = testdir.runpytest_subprocess(*command_line)
         assert result.ret == 0
-        assert set(x.basename for x in dir.listdir()) == {
+        assert {x.basename for x in dir.listdir()} == {
             ".pytest-replay-gw0.txt",
             ".pytest-replay-gw1.txt",
         }
