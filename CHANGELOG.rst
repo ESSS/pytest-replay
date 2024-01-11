@@ -1,6 +1,8 @@
 UNRELEASED
 ==========
 
+* Dropped support for Python 3.6 and 3.7 (EOL).
+* Added official support for Python 3.10, 3.11 and 3.12.
 * Test execution order using ``--replay`` now follows the recorded order, not the collection order, as was always intended (`#52`_).
 
 .. _`#52`: https://github.com/ESSS/pytest-replay/pull/53
