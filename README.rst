@@ -9,8 +9,8 @@ pytest-replay
 .. image:: https://anaconda.org/conda-forge/pytest-replay/badges/version.svg
     :target: https://anaconda.org/conda-forge/pytest-replay
 
-.. image:: https://github.com/ESSS/pytest-replay/workflows/build/badge.svg
-    :target: https://github.com/ESSS/pytest-replay/actions?query=workflow%3Abuild
+.. image:: https://github.com/ESSS/pytest-replay/workflows/test/badge.svg
+    :target: https://github.com/ESSS/pytest-replay/actions?query=workflow%3Atest
 
 .. image:: https://img.shields.io/pypi/pyversions/pytest-replay.svg
     :target: https://pypi.python.org/pypi/pytest-replay

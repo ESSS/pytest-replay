@@ -104,7 +104,7 @@ class ReplayPlugin:
         if not replay_file:
             return
 
-        with open(replay_file, "r", encoding="UTF-8") as f:
+        with open(replay_file, encoding="UTF-8") as f:
             all_lines = f.readlines()
             # Use a dict to deduplicate the node ids while keeping the order.
             nodeids = dict.fromkeys(
