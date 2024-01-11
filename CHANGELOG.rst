@@ -1,5 +1,5 @@
-UNRELEASED
-==========
+1.5.1 (2024-01-11)
+==================
 
 * Dropped support for Python 3.6 and 3.7 (EOL).
 * Added official support for Python 3.10, 3.11 and 3.12.
