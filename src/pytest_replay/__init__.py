@@ -106,6 +106,7 @@ class ReplayPlugin:
 
         with open(replay_file, "r", encoding="UTF-8") as f:
             all_lines = f.readlines()
+            # Use a dict to deduplicate the node ids while keeping the order.
             nodeids = dict.fromkeys(
                 json.loads(line)["nodeid"]
                 for line in all_lines
