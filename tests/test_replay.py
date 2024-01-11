@@ -221,6 +221,7 @@ def test_cwd_changed(testdir):
 
 @pytest.mark.usefixtures("suite")
 def test_execution_different_order(testdir):
+    """Ensure tests execute in the order defined by the JSON file, not collection (#52)."""
     dir = testdir.tmpdir / "replay"
     options = [f"--replay-record-dir={dir}"]
     result = testdir.runpytest(*options)
@@ -253,6 +254,7 @@ def test_execution_different_order(testdir):
 
 @pytest.mark.usefixtures("suite")
 def test_filter_out_tests_not_in_file(testdir):
+    """Tests not found in the JSON file should not run."""
     dir = testdir.tmpdir / "replay"
     options = [f"--replay-record-dir={dir}", "-k", "foo"]
     result = testdir.runpytest(*options)

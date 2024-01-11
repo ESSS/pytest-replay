@@ -114,6 +114,7 @@ class ReplayPlugin:
 
         items_dict = {item.nodeid: item for item in items}
         remaining = []
+        # Make sure to respect the order from the JSON file (#52).
         for nodeid in nodeids:
             if item := items_dict.pop(nodeid):
                 remaining.append(item)
