@@ -1,3 +1,10 @@
+UNRELEASED
+==========
+
+* Test execution order using ``--replay`` now follows the recorded order, not the collection order, as was always intended (`#52`_).
+
+.. _`#52`: https://github.com/ESSS/pytest-replay/pull/53
+
 1.4.0 (2021-06-09)
 ==================
 
