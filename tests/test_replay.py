@@ -1,5 +1,6 @@
 import itertools as it
 import json
+import re
 
 import pytest
 
@@ -270,3 +271,62 @@ def test_filter_out_tests_not_in_file(testdir):
         ],
         consecutive=True,
     )
+
+
+def test_replay_file_outcome_is_correct(testdir):
+    """Tests that the outcomes in the replay file are correct."""
+    testdir.makepyfile(
+        test_module="""
+        def test_success():
+            pass
+
+        def test_failure():
+            assert False
+    """
+    )
+    dir = testdir.tmpdir / "replay"
+    result = testdir.runpytest_subprocess(f"--replay-record-dir={dir}")
+    assert result.ret != 0
+
+    contents = [json.loads(s) for s in (dir / ".pytest-replay.txt").read().splitlines()]
+    assert len(contents) == 4
+
+    assert "test_success" in contents[1]["nodeid"]
+    assert contents[1]["outcome"] == "passed"
+
+    assert "test_failure" in contents[3]["nodeid"]
+    assert contents[3]["outcome"] == "failed"
+
+
+def test_replay_file_outcome_is_correct_xdist(testdir):
+    """Tests that the outcomes in the replay file are correct when running in parallel."""
+    testdir.makepyfile(
+        test_module="""
+        import pytest
+
+        @pytest.mark.parametrize('i', range(10))
+        def test_val(i):
+            assert i < 5
+    """
+    )
+    dir = testdir.tmpdir / "replay"
+    procs = 2
+    result = testdir.runpytest_subprocess(f"--replay-record-dir={dir}", f"-n {procs}")
+    assert result.ret != 0
+
+    contents = [
+        s
+        for n in range(procs)
+        for s in (dir / f".pytest-replay-gw{n}.txt").read().splitlines()
+    ]
+    pattern = re.compile(r"test_val\[(\d+)\]")
+    for content in contents:
+        parsed = json.loads(content)
+        if "outcome" not in parsed:
+            continue
+
+        i = int(pattern.search(parsed["nodeid"]).group(1))
+        if i < 5:
+            assert parsed["outcome"] == "passed", i
+        else:
+            assert parsed["outcome"] == "failed", i
