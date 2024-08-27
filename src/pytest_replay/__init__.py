@@ -90,9 +90,12 @@ class ReplayPlugin:
         report = yield
         result = report.get_result()
         if self.dir:
-            if result.when == "call":
+            current = self.node_outcome.setdefault(item.nodeid, result.outcome)
+            if not result.passed and current != "failed":
+                # do not overwrite a failed outcome with a skipped one
                 self.node_outcome[item.nodeid] = result.outcome
-            elif result.when == "teardown":
+
+            if result.when == "teardown":
                 json_content = json.dumps(
                     {
                         "nodeid": item.nodeid,

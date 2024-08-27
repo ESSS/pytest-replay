@@ -277,11 +277,28 @@ def test_replay_file_outcome_is_correct(testdir):
     """Tests that the outcomes in the replay file are correct."""
     testdir.makepyfile(
         test_module="""
+        import pytest
+
         def test_success():
             pass
 
         def test_failure():
             assert False
+
+        @pytest.fixture
+        def failing_teardown_fixture():
+            yield
+            assert False
+
+        def test_failure_fixture_teardown(failing_teardown_fixture):
+            assert True
+
+        @pytest.fixture
+        def failing_setup_fixture():
+            assert False
+
+        def test_failure_fixture_setup(failing_setup_fixture):
+            assert True
     """
     )
     dir = testdir.tmpdir / "replay"
@@ -289,13 +306,13 @@ def test_replay_file_outcome_is_correct(testdir):
     assert result.ret != 0
 
     contents = [json.loads(s) for s in (dir / ".pytest-replay.txt").read().splitlines()]
-    assert len(contents) == 4
-
-    assert "test_success" in contents[1]["nodeid"]
-    assert contents[1]["outcome"] == "passed"
-
-    assert "test_failure" in contents[3]["nodeid"]
-    assert contents[3]["outcome"] == "failed"
+    outcomes = {r["nodeid"]: r["outcome"] for r in contents if "outcome" in r}
+    assert outcomes == {
+        "test_module.py::test_success": "passed",
+        "test_module.py::test_failure": "failed",
+        "test_module.py::test_failure_fixture_teardown": "failed",
+        "test_module.py::test_failure_fixture_setup": "failed",
+    }
 
 
 def test_replay_file_outcome_is_correct_xdist(testdir):
@@ -330,3 +347,59 @@ def test_replay_file_outcome_is_correct_xdist(testdir):
             assert parsed["outcome"] == "passed", i
         else:
             assert parsed["outcome"] == "failed", i
+
+
+def test_outcomes_in_replay_file(testdir):
+    """Tests that checks how the outcomes are handled in the report hook when the various
+    phases yield failure or skipped."""
+    testdir.makepyfile(
+        test_module="""
+        import pytest
+
+        @pytest.fixture()
+        def skip_setup():
+            pytest.skip("skipping")
+            yield
+
+        @pytest.fixture()
+        def skip_teardown():
+            yield
+            pytest.skip("skipping")
+
+        @pytest.fixture()
+        def fail_setup():
+            assert False
+
+        @pytest.fixture()
+        def fail_teardown():
+            yield
+            assert False
+
+        def test_skip_fail(skip_setup, fail_teardown):
+            pass
+
+        def test_fail_skip(fail_setup, skip_teardown):
+            pass
+
+        def test_skip_setup(skip_setup):
+            pass
+
+        def test_skip_teardown(skip_teardown):
+            pass
+
+        def test_test_fail_skip_teardown(skip_teardown):
+            assert False
+    """
+    )
+    dir = testdir.tmpdir / "replay"
+    testdir.runpytest_subprocess(f"--replay-record-dir={dir}")
+
+    contents = [json.loads(s) for s in (dir / ".pytest-replay.txt").read().splitlines()]
+    outcomes = {r["nodeid"]: r["outcome"] for r in contents if "outcome" in r}
+    assert outcomes == {
+        "test_module.py::test_skip_fail": "skipped",
+        "test_module.py::test_fail_skip": "failed",
+        "test_module.py::test_skip_setup": "skipped",
+        "test_module.py::test_skip_teardown": "skipped",
+        "test_module.py::test_test_fail_skip_teardown": "failed",
+    }
