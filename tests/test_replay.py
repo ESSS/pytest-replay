@@ -1,5 +1,6 @@
 import itertools as it
 import json
+import re
 
 import pytest
 
@@ -270,3 +271,135 @@ def test_filter_out_tests_not_in_file(testdir):
         ],
         consecutive=True,
     )
+
+
+def test_replay_file_outcome_is_correct(testdir):
+    """Tests that the outcomes in the replay file are correct."""
+    testdir.makepyfile(
+        test_module="""
+        import pytest
+
+        def test_success():
+            pass
+
+        def test_failure():
+            assert False
+
+        @pytest.fixture
+        def failing_teardown_fixture():
+            yield
+            assert False
+
+        def test_failure_fixture_teardown(failing_teardown_fixture):
+            assert True
+
+        @pytest.fixture
+        def failing_setup_fixture():
+            assert False
+
+        def test_failure_fixture_setup(failing_setup_fixture):
+            assert True
+    """
+    )
+    dir = testdir.tmpdir / "replay"
+    result = testdir.runpytest_subprocess(f"--replay-record-dir={dir}")
+    assert result.ret != 0
+
+    contents = [json.loads(s) for s in (dir / ".pytest-replay.txt").read().splitlines()]
+    outcomes = {r["nodeid"]: r["outcome"] for r in contents if "outcome" in r}
+    assert outcomes == {
+        "test_module.py::test_success": "passed",
+        "test_module.py::test_failure": "failed",
+        "test_module.py::test_failure_fixture_teardown": "failed",
+        "test_module.py::test_failure_fixture_setup": "failed",
+    }
+
+
+def test_replay_file_outcome_is_correct_xdist(testdir):
+    """Tests that the outcomes in the replay file are correct when running in parallel."""
+    testdir.makepyfile(
+        test_module="""
+        import pytest
+
+        @pytest.mark.parametrize('i', range(10))
+        def test_val(i):
+            assert i < 5
+    """
+    )
+    dir = testdir.tmpdir / "replay"
+    procs = 2
+    result = testdir.runpytest_subprocess(f"--replay-record-dir={dir}", f"-n {procs}")
+    assert result.ret != 0
+
+    contents = [
+        s
+        for n in range(procs)
+        for s in (dir / f".pytest-replay-gw{n}.txt").read().splitlines()
+    ]
+    pattern = re.compile(r"test_val\[(\d+)\]")
+    for content in contents:
+        parsed = json.loads(content)
+        if "outcome" not in parsed:
+            continue
+
+        i = int(pattern.search(parsed["nodeid"]).group(1))
+        if i < 5:
+            assert parsed["outcome"] == "passed", i
+        else:
+            assert parsed["outcome"] == "failed", i
+
+
+def test_outcomes_in_replay_file(testdir):
+    """Tests that checks how the outcomes are handled in the report hook when the various
+    phases yield failure or skipped."""
+    testdir.makepyfile(
+        test_module="""
+        import pytest
+
+        @pytest.fixture()
+        def skip_setup():
+            pytest.skip("skipping")
+            yield
+
+        @pytest.fixture()
+        def skip_teardown():
+            yield
+            pytest.skip("skipping")
+
+        @pytest.fixture()
+        def fail_setup():
+            assert False
+
+        @pytest.fixture()
+        def fail_teardown():
+            yield
+            assert False
+
+        def test_skip_fail(skip_setup, fail_teardown):
+            pass
+
+        def test_fail_skip(fail_setup, skip_teardown):
+            pass
+
+        def test_skip_setup(skip_setup):
+            pass
+
+        def test_skip_teardown(skip_teardown):
+            pass
+
+        def test_test_fail_skip_teardown(skip_teardown):
+            assert False
+    """
+    )
+    dir = testdir.tmpdir / "replay"
+    testdir.runpytest_subprocess(f"--replay-record-dir={dir}")
+
+    contents = [json.loads(s) for s in (dir / ".pytest-replay.txt").read().splitlines()]
+    outcomes = {r["nodeid"]: r["outcome"] for r in contents if "outcome" in r}
+    assert outcomes == {
+        "test_module.py::test_skip_fail": "skipped",
+        "test_module.py::test_fail_skip": "failed",
+        "test_module.py::test_skip_setup": "skipped",
+        "test_module.py::test_skip_teardown": "skipped",
+        "test_module.py::test_test_fail_skip_teardown": "failed",
+    }

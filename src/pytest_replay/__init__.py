@@ -53,7 +53,8 @@ class ReplayPlugin:
         skip_cleanup = config.getoption("skip_cleanup", False)
         if not skip_cleanup:
             self.cleanup_scripts()
-        self.node_start_time = dict()
+        self.node_start_time = {}
+        self.node_outcome = {}
         self.session_start_time = config.replay_start_time
 
     def cleanup_scripts(self):
@@ -88,16 +89,22 @@ class ReplayPlugin:
     def pytest_runtest_makereport(self, item):
         report = yield
         result = report.get_result()
-        if self.dir and result.when == "teardown":
-            json_content = json.dumps(
-                {
-                    "nodeid": item.nodeid,
-                    "start": self.node_start_time[item.nodeid],
-                    "finish": time.perf_counter() - self.session_start_time,
-                    "outcome": result.outcome,
-                }
-            )
-            self.append_test_to_script(item.nodeid, json_content)
+        if self.dir:
+            current = self.node_outcome.setdefault(item.nodeid, result.outcome)
+            if not result.passed and current != "failed":
+                # do not overwrite a failed outcome with a skipped one
+                self.node_outcome[item.nodeid] = result.outcome
+
+            if result.when == "teardown":
+                json_content = json.dumps(
+                    {
+                        "nodeid": item.nodeid,
+                        "start": self.node_start_time[item.nodeid],
+                        "finish": time.perf_counter() - self.session_start_time,
+                        "outcome": self.node_outcome.pop(item.nodeid),
+                    }
+                )
+                self.append_test_to_script(item.nodeid, json_content)
 
     def pytest_collection_modifyitems(self, items, config):
         replay_file = config.getoption("replay_file")
