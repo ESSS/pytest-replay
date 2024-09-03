@@ -1,3 +1,10 @@
+1.5.2 (2024-09-03)
+==================
+
+* Fix test outcome reported in the replay file (`#64`_).
+
+.. _`#64`: https://github.com/ESSS/pytest-replay/issues/64
+
 1.5.1 (2024-01-11)
 ==================
 
