@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build and Check Package
-        uses: hynek/build-and-inspect-python-package@v2.8.0
+        uses: hynek/build-and-inspect-python-package@v2.10.0
 
   deploy:
     runs-on: ubuntu-latest
@@ -24,7 +24,7 @@ jobs:
 
     steps:
     - name: Download Package
-      uses: actions/download-artifact@v4.1.7
+      uses: actions/download-artifact@v4.1.8
       with:
         name: Packages
         path: dist
@@ -33,6 +33,6 @@ jobs:
       uses: pypa/gh-action-pypi-publish@v1.12.2
 
     - name: Publish GitHub Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: dist/*
