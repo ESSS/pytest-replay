@@ -1,6 +1,7 @@
 import itertools as it
 import json
 import re
+from pathlib import Path
 
 import pytest
 
@@ -403,3 +404,30 @@ def test_outcomes_in_replay_file(testdir):
         "test_module.py::test_skip_teardown": "skipped",
         "test_module.py::test_test_fail_skip_teardown": "failed",
     }
+
+
+@pytest.mark.usefixtures("suite")
+def test_empty_or_blank_lines(testdir):
+    """Empty or blank line in replay files should be ignored."""
+    dir = testdir.tmpdir / "replay"
+    options = [f"--replay-record-dir={dir}"]
+    result = testdir.runpytest(*options)
+
+    replay_file: Path = dir / ".pytest-replay.txt"
+
+    with replay_file.open("r+") as f:
+        content = f.readlines()
+
+        # Add empty line
+        content.insert(1, "\n")
+        # Add blank line
+        content.insert(1, "    \n")
+        # Add empty line
+        content.append("\n")
+        # Add mixed blank line
+        content.append("\t \n")
+        f.seek(0)
+        f.writelines(content)
+
+    result = testdir.runpytest(f"--replay={replay_file}", "-v")
+    assert result.ret == 0

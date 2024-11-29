@@ -114,11 +114,13 @@ class ReplayPlugin:
         with open(replay_file, encoding="UTF-8") as f:
             all_lines = f.readlines()
             # Use a dict to deduplicate the node ids while keeping the order.
-            nodeids = dict.fromkeys(
-                json.loads(line)["nodeid"]
-                for line in all_lines
-                if not line.strip().startswith(("#", "//"))
-            )
+            nodeids = {}
+            for line in all_lines:
+                stripped = line.strip()
+                # Ignore blank linkes and comments. (#70)
+                if stripped and not stripped.startswith(("#", "//")):
+                    nodeid = json.loads(stripped)["nodeid"]
+                    nodeids[nodeid] = None
 
         items_dict = {item.nodeid: item for item in items}
         remaining = []

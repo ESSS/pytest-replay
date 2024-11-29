@@ -1,3 +1,10 @@
+UNRELEASED
+==========
+
+* Ignore empty and blank lines in the replay file (`#70`_).
+
+.. _`#70`: https://github.com/ESSS/pytest-replay/issues/70
+
 1.5.2 (2024-09-03)
 ==================
 
