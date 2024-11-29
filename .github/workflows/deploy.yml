@@ -17,6 +17,8 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
 
     needs: package
 
@@ -28,10 +30,7 @@ jobs:
         path: dist
 
     - name: Publish package to PyPI
-      uses: pypa/gh-action-pypi-publish@v1.8.11
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_token }}
+      uses: pypa/gh-action-pypi-publish@v1.12.2
 
     - name: Publish GitHub Release
       uses: softprops/action-gh-release@v1
