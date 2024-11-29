@@ -1,3 +1,12 @@
+UNRELEASED
+==========
+
+*UNRELEASED*
+
+* Add support for Python 3.13.
+* Dropped support for EOL Python 3.8.
+
+
 1.5.3
 =====
 
