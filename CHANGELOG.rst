@@ -1,5 +1,7 @@
-UNRELEASED
-==========
+1.5.3
+=====
+
+*2024-11-29*
 
 * Ignore empty and blank lines in the replay file (`#70`_).
 
