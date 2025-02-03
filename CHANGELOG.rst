@@ -5,6 +5,9 @@ UNRELEASED
 
 * Add support for Python 3.13.
 * Dropped support for EOL Python 3.8.
+* Allow cutomization of metadata in replay file (`#78`_).
+
+.. _`#78`: https://github.com/ESSS/pytest-replay/issues/78
 
 
 1.5.3
