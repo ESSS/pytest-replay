@@ -6,6 +6,7 @@ import time
 from dataclasses import asdict
 from glob import glob
 from typing import Any
+from typing import Optional
 
 import pytest
 
@@ -47,8 +48,8 @@ def pytest_addoption(parser):
 class ReplayTestMetadata:
     nodeid: str
     start: float = 0.0
-    finish: float | None = None
-    outcome: str | None = None
+    finish: Optional[float] = None
+    outcome: Optional[str] = None
     metadata: dict[str, Any] = dataclasses.field(default_factory=dict)
 
     def to_clean_dict(self) -> dict[str, Any]:
@@ -160,8 +161,6 @@ class ReplayPlugin:
             config.hook.pytest_deselected(items=deselected)
 
         items[:] = remaining
-        # for nodeid in remaining:
-        #     self.nodes[nodeid].metadata =
 
     def append_test_to_script(self, nodeid, line):
         suffix = "-" + self.xdist_worker_name if self.xdist_worker_name else ""
