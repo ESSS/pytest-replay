@@ -284,7 +284,7 @@ def test_metadata(pytester, tmp_path):
             assert replay_metadata.metadata == {}
             replay_metadata.metadata["seed"] = seed = 1234
             return seed
-        
+
         def test_foo(seed):
             assert seed == 1234
         """
@@ -300,8 +300,8 @@ def test_metadata(pytester, tmp_path):
 
         @pytest.fixture
         def seed(replay_metadata):
-            return replay_metadata.metadata["seed"]            
-        
+            return replay_metadata.metadata["seed"]
+
         def test_foo(seed):
             assert seed == 1234
         """
