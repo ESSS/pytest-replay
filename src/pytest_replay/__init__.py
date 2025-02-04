@@ -58,7 +58,7 @@ class ReplayTestInfo:
 
 class _ReplayTestInfoDefaultDict(collections.defaultdict):
     def __missing__(self, key):
-        self[key] = ReplayTestMetadata(nodeid=key)
+        self[key] = ReplayTestInfo(nodeid=key)
         return self[key]
 
 
@@ -76,7 +76,7 @@ class ReplayPlugin:
         skip_cleanup = config.getoption("skip_cleanup", False)
         if not skip_cleanup:
             self.cleanup_scripts()
-        self.nodes = _ReplayTestMetadataDefaultDict()
+        self.nodes = _ReplayTestInfoDefaultDict()
         self.session_start_time = config.replay_start_time
 
     @pytest.fixture(scope="function")
