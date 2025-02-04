@@ -45,7 +45,7 @@ def pytest_addoption(parser):
 
 
 @dataclasses.dataclass
-class ReplayTestMetadata:
+class ReplayTestInfo:
     nodeid: str
     start: float = 0.0
     finish: Optional[float] = None
@@ -56,7 +56,7 @@ class ReplayTestMetadata:
         return {k: v for k, v in asdict(self).items() if v}
 
 
-class _ReplayTestMetadataDefaultDict(collections.defaultdict):
+class _ReplayTestInfoDefaultDict(collections.defaultdict):
     def __missing__(self, key):
         self[key] = ReplayTestMetadata(nodeid=key)
         return self[key]
@@ -142,10 +142,10 @@ class ReplayPlugin:
                 stripped = line.strip()
                 # Ignore blank linkes and comments. (#70)
                 if stripped and not stripped.startswith(("#", "//")):
-                    node_metadata = json.loads(stripped)
-                    nodeid = node_metadata["nodeid"]
-                    if "finish" in node_metadata:
-                        self.nodes[nodeid] = ReplayTestMetadata(**node_metadata)
+                    node_info = json.loads(stripped)
+                    nodeid = node_info["nodeid"]
+                    if "finish" in node_info:
+                        self.nodes[nodeid] = ReplayTestInfo(**node_info)
                     nodeids[nodeid] = None
 
         items_dict = {item.nodeid: item for item in items}

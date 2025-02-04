@@ -72,6 +72,8 @@ Hopefully this will make it easier to reproduce the problem and fix it.
 Additional metadata
 -------------------
 
+*Version added: 1.6*
+
 In cases where it is necessary to add new metadata to the replay file to make the test reproducible, `pytest-replay`
 provides a fixture called ``replay_metadata`` that allows new information to be added using the ``metadata``
 attribute.
