@@ -274,66 +274,40 @@ def test_filter_out_tests_not_in_file(testdir):
     )
 
 
-def test_replay_extra_metafunc(pytester, tmp_path):
+def test_metadata(pytester, tmp_path):
     pytester.makepyfile(
         """
         import pytest
-        import random
 
         @pytest.fixture
-        def extra_metafunc(replay_metadata):
+        def seed(replay_metadata):
             assert replay_metadata.metadata == {}
-            rand_int = random.randint(0, 100)
-            replay_metadata.metadata["seed"] = rand_int
-            return rand_int
-
-        @pytest.mark.parametrize('i', range(10))
-        def test_abc(extra_metafunc, i):
-            assert i % 2 == 0
+            replay_metadata.metadata["seed"] = seed = 1234
+            return seed
+        
+        def test_foo(seed):
+            assert seed == 1234
         """
     )
     dir = tmp_path / "replay"
-    result = pytester.runpytest(f"--replay-record-dir={dir}", "-n 2")
-    assert result.ret != 0
+    result = pytester.runpytest(f"--replay-record-dir={dir}")
+    assert result.ret == 0
 
-    contents = [
-        json.loads(s)
-        for replay_file in (".pytest-replay-gw0.txt", ".pytest-replay-gw1.txt")
-        for s in (dir / replay_file).read_text().splitlines()
-    ]
-    contents.sort(key=lambda x: x["nodeid"])
-    assert contents[1]["metadata"]["seed"] < 100
-    assert (
-        len(
-            {
-                val["metadata"]["seed"]
-                for val in contents
-                if val.get("metadata", {}).get("seed")
-            }
-        )
-        > 1
-    )
-
-
-def test_replay_extra_metadata_load(pytester, tmp_path):
+    # Rewrite the fixture to always returns the metadata, as written previously.
     pytester.makepyfile(
         """
         import pytest
 
-        def test_load(replay_metadata):
-            assert replay_metadata.metadata == {"seed": 1234}
+        @pytest.fixture
+        def seed(replay_metadata):
+            return replay_metadata.metadata["seed"]            
+        
+        def test_foo(seed):
+            assert seed == 1234
         """
     )
-    pytester.maketxtfile(
-        """{\"nodeid\": \"test_replay_extra_metadata_load.py::test_load\", \"start\": 1.0}
-    {\"nodeid\": \"test_replay_extra_metadata_load.py::test_load\", \"start\": 1.0, \"finish\": 2.0, \"outcome\": \"passed\", \"metadata\": {\"seed\": 1234}}
-    """
-    )
-    result = pytester.runpytest(
-        f"--replay={pytester.path / 'test_replay_extra_metadata_load.txt'}"
-    )
+    result = pytester.runpytest(f"--replay={dir / '.pytest-replay.txt'}")
     assert result.ret == 0
-    result.assert_outcomes(passed=1)
 
 
 def test_replay_file_outcome_is_correct(testdir):
