@@ -274,6 +274,42 @@ def test_filter_out_tests_not_in_file(testdir):
     )
 
 
+def test_metadata(pytester, tmp_path):
+    pytester.makepyfile(
+        """
+        import pytest
+
+        @pytest.fixture
+        def seed(replay_metadata):
+            assert replay_metadata.metadata == {}
+            replay_metadata.metadata["seed"] = seed = 1234
+            return seed
+
+        def test_foo(seed):
+            assert seed == 1234
+        """
+    )
+    dir = tmp_path / "replay"
+    result = pytester.runpytest(f"--replay-record-dir={dir}")
+    assert result.ret == 0
+
+    # Rewrite the fixture to always returns the metadata, as written previously.
+    pytester.makepyfile(
+        """
+        import pytest
+
+        @pytest.fixture
+        def seed(replay_metadata):
+            return replay_metadata.metadata["seed"]
+
+        def test_foo(seed):
+            assert seed == 1234
+        """
+    )
+    result = pytester.runpytest(f"--replay={dir / '.pytest-replay.txt'}")
+    assert result.ret == 0
+
+
 def test_replay_file_outcome_is_correct(testdir):
     """Tests that the outcomes in the replay file are correct."""
     testdir.makepyfile(

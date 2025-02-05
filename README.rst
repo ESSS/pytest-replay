@@ -69,6 +69,40 @@ execute the tests in the same order with::
 
 Hopefully this will make it easier to reproduce the problem and fix it.
 
+Additional metadata
+-------------------
+
+*Version added: 1.6*
+
+In cases where it is necessary to add new metadata to the replay file to make the test reproducible, `pytest-replay`
+provides a fixture called ``replay_metadata`` that allows new information to be added using the ``metadata``
+attribute.
+
+Example:
+
+.. code-block:: python
+
+    import pytest
+    import numpy as np
+    import random
+
+    @pytest.fixture
+    def rng(replay_metadata):
+        seed = replay_metadata.metadata.setdefault("seed", random.randint(0, 100))
+        return np.random.default_rng(seed=seed)
+
+    def test_random(rng):
+        data = rng.standard_normal((100, 100))
+        assert data.shape == (100, 100)
+
+
+When using it with pytest-replay it generates a replay file similar to
+
+.. code-block:: json
+
+    {"nodeid": "test_bar.py::test_random", "start": 0.000}
+    {"nodeid": "test_bar.py::test_random", "start": 0.000, "finish": 1.5, "outcome": "passed", "metadata": {"seed": 12}}
+
 
 FAQ
 ~~~

@@ -1,7 +1,12 @@
+import collections
+import dataclasses
 import json
 import os
 import time
+from dataclasses import asdict
 from glob import glob
+from typing import Any
+from typing import Optional
 
 import pytest
 
@@ -39,6 +44,24 @@ def pytest_addoption(parser):
     )
 
 
+@dataclasses.dataclass
+class ReplayTestInfo:
+    nodeid: str
+    start: float = 0.0
+    finish: Optional[float] = None
+    outcome: Optional[str] = None
+    metadata: dict[str, Any] = dataclasses.field(default_factory=dict)
+
+    def to_clean_dict(self) -> dict[str, Any]:
+        return {k: v for k, v in asdict(self).items() if v}
+
+
+class _ReplayTestInfoDefaultDict(collections.defaultdict):
+    def __missing__(self, key):
+        self[key] = ReplayTestInfo(nodeid=key)
+        return self[key]
+
+
 class ReplayPlugin:
     def __init__(self, config):
         self.dir = config.getoption("replay_record_dir")
@@ -53,9 +76,12 @@ class ReplayPlugin:
         skip_cleanup = config.getoption("skip_cleanup", False)
         if not skip_cleanup:
             self.cleanup_scripts()
-        self.node_start_time = {}
-        self.node_outcome = {}
+        self.nodes = _ReplayTestInfoDefaultDict()
         self.session_start_time = config.replay_start_time
+
+    @pytest.fixture(scope="function")
+    def replay_metadata(self, request):
+        return self.nodes[request.node.nodeid]
 
     def cleanup_scripts(self):
         if self.xdist_worker_name:
@@ -79,10 +105,8 @@ class ReplayPlugin:
             # only workers report running tests when running in xdist
             return
         if self.dir:
-            self.node_start_time[nodeid] = time.perf_counter() - self.session_start_time
-            json_content = json.dumps(
-                {"nodeid": nodeid, "start": self.node_start_time[nodeid]}
-            )
+            self.nodes[nodeid].start = time.perf_counter() - self.session_start_time
+            json_content = json.dumps(self.nodes[nodeid].to_clean_dict())
             self.append_test_to_script(nodeid, json_content)
 
     @pytest.hookimpl(hookwrapper=True)
@@ -90,20 +114,19 @@ class ReplayPlugin:
         report = yield
         result = report.get_result()
         if self.dir:
-            current = self.node_outcome.setdefault(item.nodeid, result.outcome)
+            self.nodes[item.nodeid].outcome = (
+                self.nodes[item.nodeid].outcome or result.outcome
+            )
+            current = self.nodes[item.nodeid].outcome
             if not result.passed and current != "failed":
                 # do not overwrite a failed outcome with a skipped one
-                self.node_outcome[item.nodeid] = result.outcome
+                self.nodes[item.nodeid].outcome = result.outcome
 
             if result.when == "teardown":
-                json_content = json.dumps(
-                    {
-                        "nodeid": item.nodeid,
-                        "start": self.node_start_time[item.nodeid],
-                        "finish": time.perf_counter() - self.session_start_time,
-                        "outcome": self.node_outcome.pop(item.nodeid),
-                    }
+                self.nodes[item.nodeid].finish = (
+                    time.perf_counter() - self.session_start_time
                 )
+                json_content = json.dumps(self.nodes[item.nodeid].to_clean_dict())
                 self.append_test_to_script(item.nodeid, json_content)
 
     def pytest_collection_modifyitems(self, items, config):
@@ -119,7 +142,10 @@ class ReplayPlugin:
                 stripped = line.strip()
                 # Ignore blank linkes and comments. (#70)
                 if stripped and not stripped.startswith(("#", "//")):
-                    nodeid = json.loads(stripped)["nodeid"]
+                    node_info = json.loads(stripped)
+                    nodeid = node_info["nodeid"]
+                    if "finish" in node_info:
+                        self.nodes[nodeid] = ReplayTestInfo(**node_info)
                     nodeids[nodeid] = None
 
         items_dict = {item.nodeid: item for item in items}
