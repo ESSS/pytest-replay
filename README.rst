@@ -69,6 +69,36 @@ execute the tests in the same order with::
 
 Hopefully this will make it easier to reproduce the problem and fix it.
 
+
+Replaying Multiple Files in Parallel
+-------------------------------------
+
+*Version added: 1.7*
+
+When you have multiple replay files from a distributed test run
+(such as ``.pytest-replay-gw0.txt``, ``.pytest-replay-gw1.txt``),
+you can replay them all at once in parallel with ``pytest-xdist`` installed.
+This is useful when you want to reproduce the exact
+execution environment that occurred during a CI run with multiple workers.
+
+Simply pass multiple replay files to the ``--replay`` option::
+
+    $ pytest --replay .pytest-replay-gw0.txt .pytest-replay-gw1.txt
+
+``pytest-replay`` will automatically:
+
+* Configure pytest-xdist with the appropriate number of workers (one per replay file)
+* Assign each replay file to a dedicated worker using xdist groups
+* Execute tests in parallel while maintaining the order within each replay file
+
+**Note:** Multiple replay files require ``pytest-xdist`` to be installed.
+If you try to use multiple files without xdist,
+``pytest-replay`` will show an error message.
+
+**Important:** When using multiple replay files, you cannot manually specify xdist options like ``-n``, ``--dist``,
+``--numprocesses``, or ``--maxprocesses``, as these are automatically configured based on the number of replay files provided.
+
+
 Additional metadata
 -------------------
 

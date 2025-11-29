@@ -5,6 +5,7 @@ import os
 import time
 from dataclasses import asdict
 from glob import glob
+from pathlib import Path
 from typing import Any
 from typing import Optional
 
@@ -22,9 +23,11 @@ def pytest_addoption(parser):
     )
     group.addoption(
         "--replay",
-        action="store",
+        action="extend",
+        nargs="*",
+        type=Path,
         dest="replay_file",
-        default=None,
+        default=[],
         help="Use a replay file to run the tests from that file only",
     )
     group.addoption(
@@ -51,6 +54,7 @@ class ReplayTestInfo:
     finish: Optional[float] = None
     outcome: Optional[str] = None
     metadata: dict[str, Any] = dataclasses.field(default_factory=dict)
+    xdist_group: Optional[str] = None
 
     def to_clean_dict(self) -> dict[str, Any]:
         return {k: v for k, v in asdict(self).items() if v}
@@ -134,19 +138,23 @@ class ReplayPlugin:
         if not replay_file:
             return
 
-        with open(replay_file, encoding="UTF-8") as f:
-            all_lines = f.readlines()
-            # Use a dict to deduplicate the node ids while keeping the order.
-            nodeids = {}
-            for line in all_lines:
-                stripped = line.strip()
-                # Ignore blank linkes and comments. (#70)
-                if stripped and not stripped.startswith(("#", "//")):
-                    node_info = json.loads(stripped)
-                    nodeid = node_info["nodeid"]
-                    if "finish" in node_info:
-                        self.nodes[nodeid] = ReplayTestInfo(**node_info)
-                    nodeids[nodeid] = None
+        enable_xdist = len(replay_file) > 1
+
+        # Use a dict to deduplicate the node ids while keeping the order.
+        nodeids = {}
+        for num, single_rep in enumerate(replay_file):
+            with open(single_rep, encoding="UTF-8") as f:
+                for line in f.readlines():
+                    stripped = line.strip()
+                    # Ignore blank lines and comments. (#70)
+                    if stripped and not stripped.startswith(("#", "//")):
+                        node_info = json.loads(stripped)
+                        nodeid = node_info["nodeid"]
+                        if enable_xdist:
+                            node_info["xdist_group"] = f"replay-gw{num}"
+                        if "finish" in node_info:
+                            self.nodes[nodeid] = ReplayTestInfo(**node_info)
+                        nodeids[nodeid] = None
 
         items_dict = {item.nodeid: item for item in items}
         remaining = []
@@ -154,6 +162,8 @@ class ReplayPlugin:
         for nodeid in nodeids:
             item = items_dict.pop(nodeid)
             if item:
+                if xdist_group := self.nodes[nodeid].xdist_group:
+                    item.add_marker(pytest.mark.xdist_group(name=xdist_group))
                 remaining.append(item)
         deselected = list(items_dict.values())
 
@@ -174,6 +184,33 @@ class ReplayPlugin:
 class DeferPlugin:
     def pytest_configure_node(self, node):
         node.workerinput["replay_start_time"] = node.config.replay_start_time
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_load_initial_conftests(early_config, parser, args):
+    is_xdist_enabled = early_config.pluginmanager.has_plugin(
+        "xdist"
+    ) or early_config.pluginmanager.has_plugin("xdist.plugin")
+    replay_file = parser.parse(args).replay_file
+
+    if len(replay_file) > 1 and not is_xdist_enabled:
+        raise pytest.UsageError(
+            "Cannot use --replay with multiple files without pytest-xdist installed."
+        )
+    if len(replay_file) > 1:
+        if any(
+            map(
+                lambda x: any(
+                    x == arg or x.startswith(f"{arg}=")
+                    for arg in ("-n", "--dist", "--numprocesses", "--maxprocesses")
+                ),
+                args,
+            )
+        ):
+            raise pytest.UsageError(
+                "Cannot use --replay with --numprocesses or --dist or --maxprocesses."
+            )
+        args.extend(["-n", str(len(replay_file)), "--dist", "loadgroup"])
 
 
 def pytest_configure(config):
