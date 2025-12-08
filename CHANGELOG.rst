@@ -1,3 +1,13 @@
+1.7.0
+=====
+
+*2025-12-08*
+
+* Support replaying tests from multiple replay files. When multiple files are
+  passed to ``--replay``, the run is automatically distributed across workers
+  using ``pytest-xdist``.
+* Internal: rename ``replay_file`` to ``replay_files``.
+
 1.6.0
 =====
 
@@ -6,7 +16,7 @@
 * Add support for Python 3.13.
 * Dropped support for EOL Python 3.8.
 * Change build to use ``pyproject.toml``.
-* Allow cutomization of metadata in replay file (`#78`_).
+* Allow customization of metadata in replay file (`#78`_).
 
 .. _`#78`: https://github.com/ESSS/pytest-replay/issues/78
 
