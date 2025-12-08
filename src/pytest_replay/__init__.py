@@ -26,7 +26,7 @@ def pytest_addoption(parser):
         action="extend",
         nargs="*",
         type=Path,
-        dest="replay_file",
+        dest="replay_files",
         default=[],
         help="Use a replay file to run the tests from that file only",
     )
@@ -134,15 +134,15 @@ class ReplayPlugin:
                 self.append_test_to_script(item.nodeid, json_content)
 
     def pytest_collection_modifyitems(self, items, config):
-        replay_file = config.getoption("replay_file")
-        if not replay_file:
+        replay_files = config.getoption("replay_files")
+        if not replay_files:
             return
 
-        enable_xdist = len(replay_file) > 1
+        enable_xdist = len(replay_files) > 1
 
         # Use a dict to deduplicate the node ids while keeping the order.
         nodeids = {}
-        for num, single_rep in enumerate(replay_file):
+        for num, single_rep in enumerate(replay_files):
             with open(single_rep, encoding="UTF-8") as f:
                 for line in f.readlines():
                     stripped = line.strip()
@@ -188,16 +188,17 @@ class DeferPlugin:
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_load_initial_conftests(early_config, parser, args):
+    # Check both plugin names: "xdist" (normal install) and "xdist.plugin" (frozen executables with -p flag)
     is_xdist_enabled = early_config.pluginmanager.has_plugin(
         "xdist"
     ) or early_config.pluginmanager.has_plugin("xdist.plugin")
-    replay_file = parser.parse(args).replay_file
+    replay_files = parser.parse(args).replay_files
 
-    if len(replay_file) > 1 and not is_xdist_enabled:
+    if len(replay_files) > 1 and not is_xdist_enabled:
         raise pytest.UsageError(
             "Cannot use --replay with multiple files without pytest-xdist installed."
         )
-    if len(replay_file) > 1:
+    if len(replay_files) > 1:
         if any(
             map(
                 lambda x: any(
@@ -210,11 +211,11 @@ def pytest_load_initial_conftests(early_config, parser, args):
             raise pytest.UsageError(
                 "Cannot use --replay with --numprocesses or --dist or --maxprocesses."
             )
-        args.extend(["-n", str(len(replay_file)), "--dist", "loadgroup"])
+        args.extend(["-n", str(len(replay_files)), "--dist", "loadgroup"])
 
 
 def pytest_configure(config):
-    if config.getoption("replay_record_dir") or config.getoption("replay_file"):
+    if config.getoption("replay_record_dir") or config.getoption("replay_files"):
         if hasattr(config, "workerinput"):
             config.replay_start_time = config.workerinput["replay_start_time"]
         else:
