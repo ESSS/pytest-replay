@@ -1,7 +1,7 @@
-UNRELEASED
-==========
+1.7.0
+=====
 
-*UNRELEASED*
+*2025-12-09*
 
 * Support replaying tests from multiple replay files. When multiple files are
   passed to ``--replay``, the run is automatically distributed across workers
