@@ -6,26 +6,6 @@ from pathlib import Path
 import pytest
 
 
-@pytest.fixture
-def suite(testdir):
-    testdir.makepyfile(
-        test_1="""
-            def test_foo():
-                pass
-            def test_bar():
-                pass
-        """,
-        test_2="""
-            def test_zz():
-                pass
-        """,
-        test_3="""
-            def test_foobar():
-                pass
-        """,
-    )
-
-
 @pytest.mark.parametrize(
     "extra_option", [(None, ".pytest-replay"), ("--replay-base-name", "NEW-BASE-NAME")]
 )
@@ -448,7 +428,6 @@ def test_empty_or_blank_lines(testdir):
     dir = testdir.tmpdir / "replay"
     options = [f"--replay-record-dir={dir}"]
     result = testdir.runpytest(*options)
-
     replay_file: Path = dir / ".pytest-replay.txt"
 
     with replay_file.open("r+") as f:
