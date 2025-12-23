@@ -1,7 +1,7 @@
 1.7.1
 =====
 
-*Unreleased*
+*2025-12-23*
 
 * Fix parsing of custom command-line options from other plugins (`#105`_).
 
