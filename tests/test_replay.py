@@ -446,3 +446,31 @@ def test_empty_or_blank_lines(testdir):
 
     result = testdir.runpytest(f"--replay={replay_file}", "-v")
     assert result.ret == 0
+
+
+def test_custom_command_line_options(testdir):
+    """Custom command-line options from other plugins should not break pytest-replay (#105)."""
+    testdir.makeconftest(
+        """
+        def pytest_addoption(parser):
+            parser.addoption(
+                '--custom-option',
+                action='store_true',
+                default=False,
+                help='A custom command-line option'
+            )
+        """
+    )
+    testdir.makepyfile(
+        """
+        def test_with_custom_option(request):
+            assert request.config.getoption('custom_option') is True
+        """
+    )
+    record_dir = testdir.tmpdir / "replay"
+    result = testdir.runpytest(f"--replay-record-dir={record_dir}", "--custom-option")
+    assert result.ret == 0
+
+    replay_file = record_dir / ".pytest-replay.txt"
+    result = testdir.runpytest(f"--replay={replay_file}", "--custom-option")
+    assert result.ret == 0

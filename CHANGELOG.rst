@@ -1,3 +1,13 @@
+1.7.1
+=====
+
+*Unreleased*
+
+* Fix parsing of custom command-line options from other plugins (`#105`_).
+
+.. _`#105`: https://github.com/ESSS/pytest-replay/issues/105
+
+
 1.7.0
 =====
 

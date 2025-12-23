@@ -192,7 +192,7 @@ def pytest_load_initial_conftests(early_config, parser, args):
     is_xdist_enabled = early_config.pluginmanager.has_plugin(
         "xdist"
     ) or early_config.pluginmanager.has_plugin("xdist.plugin")
-    replay_files = parser.parse(args).replay_files
+    replay_files = parser.parse_known_args(args).replay_files
 
     if len(replay_files) > 1 and not is_xdist_enabled:
         raise pytest.UsageError(
