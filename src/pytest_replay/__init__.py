@@ -160,11 +160,18 @@ class ReplayPlugin:
         remaining = []
         # Make sure to respect the order from the JSON file (#52).
         for nodeid in nodeids:
-            item = items_dict.pop(nodeid)
-            if item:
-                if xdist_group := self.nodes[nodeid].xdist_group:
-                    item.add_marker(pytest.mark.xdist_group(name=xdist_group))
-                remaining.append(item)
+            try:
+                item = items_dict.pop(nodeid)
+            except KeyError:
+                # raise a meaningful error if a test is missing from the collection (#99)
+                raise pytest.UsageError(
+                    "Test with nodeid {!r} not found.".format(nodeid)
+                )
+            else:
+                if item:
+                    if xdist_group := self.nodes[nodeid].xdist_group:
+                        item.add_marker(pytest.mark.xdist_group(name=xdist_group))
+                    remaining.append(item)
         deselected = list(items_dict.values())
 
         if deselected:

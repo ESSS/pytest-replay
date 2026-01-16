@@ -1,3 +1,12 @@
+1.7.2
+=====
+
+*UNRELEASED*
+
+* Show a meaningful error in case a test in the replay file cannot be found (`#99`_).
+
+.. _`#99`: https://github.com/ESSS/pytest-replay/issues/99
+
 1.7.1
 =====
 

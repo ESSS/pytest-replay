@@ -474,3 +474,33 @@ def test_custom_command_line_options(testdir):
     replay_file = record_dir / ".pytest-replay.txt"
     result = testdir.runpytest(f"--replay={replay_file}", "--custom-option")
     assert result.ret == 0
+
+
+def test_non_existent_entry_in_replay_file(testdir):
+    """A non existent entry in the replay file should not crash with internal error (#99)."""
+    testdir.makepyfile(
+        test_module="""
+        def test_existing():
+            assert False
+    """
+    )
+    dir = testdir.tmpdir / "replay"
+    dir.mkdir()
+    replay_file = dir / ".pytest-replay.txt"
+
+    contents = [
+        '{"nodeid": "test_module.py::test_existing", "start": 1.0}',
+        '{"nodeid": "test_module.py::test_non_existent", "start": 2.0}',
+        '{"nodeid": "test_module.py::test_non_existent_2", "start": 3.0}',
+    ]
+
+    replay_file.write_text("\n".join(contents), "utf-8")
+
+    result = testdir.runpytest(f"--replay={replay_file}", "-v")
+    assert result.ret == pytest.ExitCode.USAGE_ERROR
+    # assert that the first non existent test is reported
+    result.stderr.fnmatch_lines(
+        "ERROR: Test with nodeid 'test_module.py::test_non_existent' not found."
+    )
+    # assert that tests are not run when non existent entry is found
+    result.stdout.fnmatch_lines("*no tests ran*")
