@@ -83,18 +83,14 @@ def test_line_comments(suite, testdir, comment_format, name_to_comment, deselect
 
 @pytest.mark.parametrize("do_crash", [True, False])
 def test_crash(testdir, do_crash):
-    testdir.makepyfile(
-        test_crash="""
+    testdir.makepyfile(test_crash="""
         import os
         def test_crash():
             if {do_crash}:
                 os._exit(1)
         def test_normal():
             pass
-    """.format(
-            do_crash=do_crash
-        )
-    )
+    """.format(do_crash=do_crash))
     dir = testdir.tmpdir / "replay"
     result = testdir.runpytest_subprocess(f"--replay-record-dir={dir}")
 
@@ -109,14 +105,12 @@ def test_crash(testdir, do_crash):
 
 
 def test_xdist(testdir):
-    testdir.makepyfile(
-        """
+    testdir.makepyfile("""
         import pytest
         @pytest.mark.parametrize('i', range(10))
         def test(i):
             pass
-    """
-    )
+    """)
     dir = testdir.tmpdir / "replay"
     procs = 2
     testdir.runpytest_subprocess("-n", str(procs), f"--replay-record-dir={dir}")
@@ -183,15 +177,13 @@ def test_skip_cleanup_does_not_erase_replay_files(suite, testdir):
 def test_cwd_changed(testdir):
     """Ensure that the plugin works even if some tests changes cwd."""
     testdir.tmpdir.join("subdir").ensure(dir=1)
-    testdir.makepyfile(
-        """
+    testdir.makepyfile("""
         import os
         def test_1():
             os.chdir('subdir')
         def test_2():
             pass
-    """
-    )
+    """)
     dir = testdir.tmpdir / "replay"
     result = testdir.runpytest_subprocess("--replay-record-dir={}".format("replay"))
     replay_file = dir / ".pytest-replay.txt"
@@ -255,8 +247,7 @@ def test_filter_out_tests_not_in_file(testdir):
 
 
 def test_metadata(pytester, tmp_path):
-    pytester.makepyfile(
-        """
+    pytester.makepyfile("""
         import pytest
 
         @pytest.fixture
@@ -267,15 +258,13 @@ def test_metadata(pytester, tmp_path):
 
         def test_foo(seed):
             assert seed == 1234
-        """
-    )
+        """)
     dir = tmp_path / "replay"
     result = pytester.runpytest(f"--replay-record-dir={dir}")
     assert result.ret == 0
 
     # Rewrite the fixture to always returns the metadata, as written previously.
-    pytester.makepyfile(
-        """
+    pytester.makepyfile("""
         import pytest
 
         @pytest.fixture
@@ -284,16 +273,14 @@ def test_metadata(pytester, tmp_path):
 
         def test_foo(seed):
             assert seed == 1234
-        """
-    )
+        """)
     result = pytester.runpytest(f"--replay={dir / '.pytest-replay.txt'}")
     assert result.ret == 0
 
 
 def test_replay_file_outcome_is_correct(testdir):
     """Tests that the outcomes in the replay file are correct."""
-    testdir.makepyfile(
-        test_module="""
+    testdir.makepyfile(test_module="""
         import pytest
 
         def test_success():
@@ -316,8 +303,7 @@ def test_replay_file_outcome_is_correct(testdir):
 
         def test_failure_fixture_setup(failing_setup_fixture):
             assert True
-    """
-    )
+    """)
     dir = testdir.tmpdir / "replay"
     result = testdir.runpytest_subprocess(f"--replay-record-dir={dir}")
     assert result.ret != 0
@@ -334,15 +320,13 @@ def test_replay_file_outcome_is_correct(testdir):
 
 def test_replay_file_outcome_is_correct_xdist(testdir):
     """Tests that the outcomes in the replay file are correct when running in parallel."""
-    testdir.makepyfile(
-        test_module="""
+    testdir.makepyfile(test_module="""
         import pytest
 
         @pytest.mark.parametrize('i', range(10))
         def test_val(i):
             assert i < 5
-    """
-    )
+    """)
     dir = testdir.tmpdir / "replay"
     procs = 2
     result = testdir.runpytest_subprocess(f"--replay-record-dir={dir}", f"-n {procs}")
@@ -369,8 +353,7 @@ def test_replay_file_outcome_is_correct_xdist(testdir):
 def test_outcomes_in_replay_file(testdir):
     """Tests that checks how the outcomes are handled in the report hook when the various
     phases yield failure or skipped."""
-    testdir.makepyfile(
-        test_module="""
+    testdir.makepyfile(test_module="""
         import pytest
 
         @pytest.fixture()
@@ -406,8 +389,7 @@ def test_outcomes_in_replay_file(testdir):
 
         def test_test_fail_skip_teardown(skip_teardown):
             assert False
-    """
-    )
+    """)
     dir = testdir.tmpdir / "replay"
     testdir.runpytest_subprocess(f"--replay-record-dir={dir}")
 
@@ -450,8 +432,7 @@ def test_empty_or_blank_lines(testdir):
 
 def test_custom_command_line_options(testdir):
     """Custom command-line options from other plugins should not break pytest-replay (#105)."""
-    testdir.makeconftest(
-        """
+    testdir.makeconftest("""
         def pytest_addoption(parser):
             parser.addoption(
                 '--custom-option',
@@ -459,14 +440,11 @@ def test_custom_command_line_options(testdir):
                 default=False,
                 help='A custom command-line option'
             )
-        """
-    )
-    testdir.makepyfile(
-        """
+        """)
+    testdir.makepyfile("""
         def test_with_custom_option(request):
             assert request.config.getoption('custom_option') is True
-        """
-    )
+        """)
     record_dir = testdir.tmpdir / "replay"
     result = testdir.runpytest(f"--replay-record-dir={record_dir}", "--custom-option")
     assert result.ret == 0
@@ -478,12 +456,10 @@ def test_custom_command_line_options(testdir):
 
 def test_non_existent_entry_in_replay_file(testdir):
     """A non existent entry in the replay file should not crash with internal error (#99)."""
-    testdir.makepyfile(
-        test_module="""
+    testdir.makepyfile(test_module="""
         def test_existing():
             assert False
-    """
-    )
+    """)
     dir = testdir.tmpdir / "replay"
     dir.mkdir()
     replay_file = dir / ".pytest-replay.txt"
