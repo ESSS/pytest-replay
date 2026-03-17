@@ -25,7 +25,7 @@ jobs:
 
     steps:
     - name: Download Package
-      uses: actions/download-artifact@v8.0.0
+      uses: actions/download-artifact@v8.0.1
       with:
         name: Packages
         path: dist
