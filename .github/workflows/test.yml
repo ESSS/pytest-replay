@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Build and Check Package
-        uses: hynek/build-and-inspect-python-package@v2.18.0
+        uses: hynek/build-and-inspect-python-package@v3.0.1
 
   test:
 
@@ -45,7 +45,7 @@ jobs:
         path: dist
 
     - name: Set up Python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python }}
 
