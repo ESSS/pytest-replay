@@ -1,7 +1,7 @@
 1.8.0
 =====
 
-*UNRELEASED*
+*2026-10-26*
 
 * Dropped support for Python 3.9 and 3.10.
 * Show a meaningful error in case a test in the replay file cannot be found (`#99`_).
