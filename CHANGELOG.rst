@@ -1,8 +1,9 @@
-1.7.2
+1.8.0
 =====
 
 *UNRELEASED*
 
+* Dropped support for Python 3.9 and 3.10.
 * Show a meaningful error in case a test in the replay file cannot be found (`#99`_).
 
 .. _`#99`: https://github.com/ESSS/pytest-replay/issues/99

@@ -7,7 +7,6 @@ from dataclasses import asdict
 from glob import glob
 from pathlib import Path
 from typing import Any
-from typing import Optional
 
 import pytest
 
@@ -51,10 +50,10 @@ def pytest_addoption(parser):
 class ReplayTestInfo:
     nodeid: str
     start: float = 0.0
-    finish: Optional[float] = None
-    outcome: Optional[str] = None
+    finish: float | None = None
+    outcome: str | None = None
     metadata: dict[str, Any] = dataclasses.field(default_factory=dict)
-    xdist_group: Optional[str] = None
+    xdist_group: str | None = None
 
     def to_clean_dict(self) -> dict[str, Any]:
         return {k: v for k, v in asdict(self).items() if v}
@@ -164,9 +163,7 @@ class ReplayPlugin:
                 item = items_dict.pop(nodeid)
             except KeyError:
                 # raise a meaningful error if a test is missing from the collection (#99)
-                raise pytest.UsageError(
-                    "Test with nodeid {!r} not found.".format(nodeid)
-                )
+                raise pytest.UsageError(f"Test with nodeid {nodeid!r} not found.")
             else:
                 if item:
                     if xdist_group := self.nodes[nodeid].xdist_group:
