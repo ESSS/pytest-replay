@@ -7,7 +7,6 @@ from dataclasses import asdict
 from glob import glob
 from pathlib import Path
 from typing import Any
-from typing import Optional
 
 import pytest
 
@@ -51,10 +50,10 @@ def pytest_addoption(parser):
 class ReplayTestInfo:
     nodeid: str
     start: float = 0.0
-    finish: Optional[float] = None
-    outcome: Optional[str] = None
+    finish: float | None = None
+    outcome: str | None = None
     metadata: dict[str, Any] = dataclasses.field(default_factory=dict)
-    xdist_group: Optional[str] = None
+    xdist_group: str | None = None
 
     def to_clean_dict(self) -> dict[str, Any]:
         return {k: v for k, v in asdict(self).items() if v}
