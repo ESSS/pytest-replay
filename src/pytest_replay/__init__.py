@@ -163,9 +163,7 @@ class ReplayPlugin:
                 item = items_dict.pop(nodeid)
             except KeyError:
                 # raise a meaningful error if a test is missing from the collection (#99)
-                raise pytest.UsageError(
-                    "Test with nodeid {!r} not found.".format(nodeid)
-                )
+                raise pytest.UsageError(f"Test with nodeid {nodeid!r} not found.")
             else:
                 if item:
                     if xdist_group := self.nodes[nodeid].xdist_group:
